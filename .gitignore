@@ -1,0 +1,32 @@
+# Files we marked to ignore
+.ign.*
+
+# Build files and folders
+build/*
+**/build/**
+**/_build/**
+BUILD/*
+**/BUILD/**
+**/build-*/**
+**/target/**
+**/zig-out/**
+**/.zig-cache/**
+
+# Files created by compilers
+*.out
+*.o
+
+# Utility scripts
+run.sh
+pretty.sh
+makefile
+
+# Files created by text editors
+*.vim
+*.swp
+
+# Result files
+*.dat
+*.csv
+*.txt
+
