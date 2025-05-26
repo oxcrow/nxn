@@ -1,0 +1,78 @@
+# files we marked to ignore
+.ign.*
+
+# files that we use but want to ignore
+run.txt
+
+# Doxygen files and folders
+Doxyfile
+**/html/**
+**/latex/**
+
+# basic files and folders
+build/*
+**/build/**
+**/_build/**
+BUILD/*
+**/BUILD/**
+**/build-*/**
+**/target/**
+*.swp~
+tags
+CMakeLists.txt.user
+
+# ignore third party code
+**/thirdparty/**
+
+# files created during compilation
+*.out
+*.o
+*.mod
+
+# files created by rust
+Cargo.lock
+
+# scripts
+run.sh
+ff-run.sh
+pretty.sh
+
+# files created by our own code
+*.dat
+
+# files created by neovim
+*.vim
+
+# files created by qtcreator
+*.config
+*.creator
+*.creator.user
+*.files
+*.includes
+
+# files created by lsp server
+**/.cache/**
+compile_commands.json
+
+# files created by performance profilers
+perf.data
+perf.data.old
+cachegrind.out.*
+
+# files for lsp
+.fortls
+.clangd
+
+# files created by our code
+*.vtk
+*.dat
+*.csv
+
+# mesh files
+*.su2
+*.msh
+*.cgns
+
+# project specific files
+*/makefile
+makefile
