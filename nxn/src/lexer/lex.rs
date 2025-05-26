@@ -5,31 +5,42 @@ use crate::lexer::Span;
 use crate::lexer::Token;
 use crate::lexer::TokenKind;
 
+#[derive(Default, Debug, Clone)]
+pub struct Lexer<'code> {
+    pub code: &'code str,
+    pub kinds: Vec<TokenKind<'code>>,
+    pub spans: Vec<Span>,
+}
+
+/////////////////////////////////////////////////////////////////////
+
 pub fn lex_code<'c>(
-    mut code: &'c str,
-    mut token_kinds: Vec<TokenKind<'c>>,
-    mut token_spans: Vec<Span>,
-) -> Result<(Vec<TokenKind<'c>>, Vec<Span>)> {
-    token_kinds.clear();
-    token_spans.clear();
+    code: &'c str,
+    mut kinds: Vec<TokenKind<'c>>,
+    mut spans: Vec<Span>,
+) -> Result<Lexer<'c>> {
+    kinds.clear();
+    spans.clear();
+
+    let mut rest = code;
     let mut ichar = 0;
 
-    while !code.is_empty() {
+    while !rest.is_empty() {
         // Lex token
-        let (token, rest) = lex_word(code, ichar)?;
+        let (token, last) = lex_word(rest, ichar)?;
 
         // Store token
         if token.kind.is_valid() {
-            token_kinds.push(token.kind);
-            token_spans.push(token.span);
+            kinds.push(token.kind);
+            spans.push(token.span);
         }
 
         // Skip
-        code = rest;
+        rest = last;
         ichar = token.span.end();
     }
 
-    Ok((token_kinds, token_spans))
+    Ok(Lexer { code, kinds, spans })
 }
 
 pub fn lex_word(code: &str, ichar: usize) -> Result<(Token, &str)> {
