@@ -1,0 +1,12 @@
+//
+// NXN: We wish to create the best programming language in the world
+//
+
+fn main() int {
+    let x = zero
+    x
+}
+
+fn zero() int {
+    0
+}
