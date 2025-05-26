@@ -1,0 +1,16 @@
+[package]
+name = "nxn"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+# error
+anyhow = "1.0.98"
+thiserror = "2.0.12"
+# language
+itertools = "0.14.0"
+bon = "3.6.3"
+# utility
+clap = "4.5.38"
+pbr = "1.1.1"
+toml = "0.8.22"
