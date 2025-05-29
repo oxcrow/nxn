@@ -9,9 +9,8 @@
 
 pub mod lexer;
 
-const BYE: &str = r#"(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"#;
-
 pub fn bye() {
+    const BYE: &str = r#"(ﾉ-ヮ-)ﾉ*:･ﾟ✧"#;
     println!("{}", BYE);
 }
 
