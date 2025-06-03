@@ -27,7 +27,6 @@ CMakeLists.txt.user
 # files created during compilation
 *.out
 *.o
-*.mod
 
 # files created by rust
 Cargo.lock
