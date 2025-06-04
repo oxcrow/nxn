@@ -1,11 +1,8 @@
-package main
+package core
 
 import "os"
 
-func ignore(a ...any) {
-}
-
-func readFile(filename string) (string, error) {
+func ReadFile(filename string) (string, error) {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return "", err

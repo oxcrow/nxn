@@ -31,6 +31,14 @@ CMakeLists.txt.user
 # files created by rust
 Cargo.lock
 
+# files created by go
+go.sum
+
+# files created by go tools
+# goyacc
+y.go
+y.output
+
 # scripts
 run.sh
 ff-run.sh
@@ -57,6 +65,11 @@ compile_commands.json
 perf.data
 perf.data.old
 cachegrind.out.*
+
+# files created by flex and bison
+lex.yy.c
+*.tab.h
+*.tab.c
 
 # files for lsp
 .fortls

@@ -1,5 +1,7 @@
 package lexer
 
+import cx "nxn/core"
+
 type TokenKind uint8
 
 const (
@@ -16,6 +18,7 @@ const (
 
 	TOKEN_EQEQ
 	TOKEN_EQ
+	TOKEN_SEMICOLON
 
 	TOKEN_UNIT
 	TOKEN_INT
@@ -28,10 +31,5 @@ const (
 
 type Token struct {
 	Kind TokenKind
-	Span Span
-}
-
-type Span struct {
-	Start int
-	Endxx int
+	Span cx.Span
 }
