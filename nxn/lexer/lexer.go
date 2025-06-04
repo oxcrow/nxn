@@ -1,12 +1,18 @@
 package lexer
 
+import (
+	cx "nxn/core"
+)
+
 type Lexer struct {
 	Kinds []TokenKind
-	Spans []Span
+	Spans []cx.Span
+	Code  *string
 }
 
 func LexCode(code string) (Lexer, error) {
 	lexer := Lexer{}
+	lexer.Code = &code
 	ic := 0
 
 	for ic < len(code) {
@@ -34,9 +40,9 @@ func LexWord(code string, ic int) (Token, error) {
 	e := charAt(code, ic+2)
 	f := charAt(code, ic+3)
 
-	span1 := Span{Start: ic, Endxx: ic + 1}
-	span2 := Span{Start: ic, Endxx: ic + 2}
-	span3 := Span{Start: ic, Endxx: ic + 3}
+	span1 := cx.NewSpan(ic, ic+1)
+	span2 := cx.NewSpan(ic, ic+2)
+	span3 := cx.NewSpan(ic, ic+3)
 
 	none := TOKEN_NONE
 	kind := none
@@ -77,7 +83,7 @@ func LexWord(code string, ic int) (Token, error) {
 		kind = none
 	}
 
-	kind, span = func() (TokenKind, Span) {
+	kind, span = func() (TokenKind, cx.Span) {
 		if kind == none {
 			if isalpha(c) || c == '_' {
 				k, s := lexid(code, ic)
@@ -97,7 +103,7 @@ func LexWord(code string, ic int) (Token, error) {
 
 //////////////////////////////////////////////////////////////////////
 
-func lexid(code string, ic int) (TokenKind, Span) {
+func lexid(code string, ic int) (TokenKind, cx.Span) {
 	iend := func() int {
 		n := len(code)
 		for i := ic; i < n; i++ {
@@ -112,12 +118,12 @@ func lexid(code string, ic int) (TokenKind, Span) {
 	}()
 
 	token := TOKEN_IDVAL
-	span := Span{Start: ic, Endxx: iend}
+	span := cx.NewSpan(ic, iend)
 
 	return token, span
 }
 
-func lexint(code string, ic int) (TokenKind, Span) {
+func lexint(code string, ic int) (TokenKind, cx.Span) {
 	iend := func() int {
 		n := len(code)
 		for i := ic; i < n; i++ {
@@ -130,7 +136,7 @@ func lexint(code string, ic int) (TokenKind, Span) {
 	}()
 
 	token := TOKEN_INTVAL
-	span := Span{Start: ic, Endxx: iend}
+	span := cx.NewSpan(ic, iend)
 
 	return token, span
 }

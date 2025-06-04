@@ -31,6 +31,9 @@ CMakeLists.txt.user
 # files created by rust
 Cargo.lock
 
+# files created by go
+go.sum
+
 # scripts
 run.sh
 ff-run.sh
