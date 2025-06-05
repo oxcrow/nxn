@@ -64,6 +64,9 @@ func LexWord(code string, ic int) (Token, error) {
 		} else {
 			kind = TOKEN_EQ
 		}
+	case ';':
+		kind = TOKEN_SEMICOLON
+		span = span1
 	case 'f':
 		if c == 'f' && d == 'n' && isdel(e) {
 			kind = TOKEN_FN
@@ -99,6 +102,12 @@ func LexWord(code string, ic int) (Token, error) {
 
 	token := Token{Kind: kind, Span: span}
 	return token, nil
+}
+
+//////////////////////////////////////////////////////////////////////
+
+func (l *Lexer) NumTokens() int {
+	return len(l.Kinds)
 }
 
 //////////////////////////////////////////////////////////////////////
