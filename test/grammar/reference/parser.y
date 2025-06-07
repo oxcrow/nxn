@@ -64,6 +64,7 @@ expressions
 
 stmt
     : assignStmt
+    | invokeStmt
 
 expr
     : invokeExpr
@@ -72,6 +73,9 @@ expr
 
 assignStmt
     : LET IDVAL EQ expr SEMICOLON
+
+invokeStmt
+    : invokeExpr SEMICOLON
 
 invokeExpr
     : IDVAL LPAREN RPAREN
