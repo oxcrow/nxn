@@ -36,7 +36,6 @@ type Type struct {
 
 type Visibility struct {
 	Self Node
-	Kind VisibilityKind
 }
 
 type Arguments struct {
@@ -72,14 +71,6 @@ const (
 	NODE_TYPE
 
 	NODE_NONE
-)
-
-type VisibilityKind uint8
-
-const (
-	VISIBILITY_EXPORT VisibilityKind = iota // Visible to public: fn X() {}
-	VISIBILITY_LOCAL                        // Visible to locals: fn x() {}
-	VISIBILITY_FILE                         // Visible to file:   fn x() {} or X() {}
 )
 
 //////////////////////////////////////////////////////////////////////
