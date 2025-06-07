@@ -44,7 +44,7 @@ extern int yylineno;
 file: entities
 
 entities
-    :  // a file may contain no entities
+    : // a file may contain no entities
     | function entities // a file may contain one or more functions
 
 function
