@@ -8,11 +8,11 @@ import (
 )
 
 type Parser struct {
-	//
+	lexer *lx.Lexer
 }
 
 func ParseCode(lexer lx.Lexer) (ax.Ast, error) {
-	parser := Parser{}
+	parser := Parser{lexer: &lexer}
 	_, e := parseCode(&parser, lexer, 0)
 	return ax.Ast{}, e
 }
