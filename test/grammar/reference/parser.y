@@ -41,11 +41,11 @@ extern int yylineno;
 
 %%
 
-file: functions
+file: entities
 
-functions
-    : // a file may contain no functions
-    | function functions // a file may contain one or more functions
+entities
+    :  // a file may contain no entities
+    | function entities // a file may contain one or more functions
 
 function
     : FN IDVAL arguments return body
