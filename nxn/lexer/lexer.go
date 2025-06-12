@@ -67,6 +67,11 @@ func LexWord(code string, ic int) (Token, error) {
 	case ';':
 		kind = TOKEN_SEMICOLON
 		span = span1
+	case 'e':
+		if c == 'e' && d == 'x' && isdel(e) {
+			kind = TOKEN_EXPORT
+			span = span2
+		}
 	case 'f':
 		if c == 'f' && d == 'n' && isdel(e) {
 			kind = TOKEN_FN
