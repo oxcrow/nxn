@@ -128,6 +128,10 @@ func parseStatements(parser *Parser, lexer lx.Lexer, i int) (int, error) {
 	return k, e
 }
 
+func parseExpressions(parser *Parser, lexer lx.Lexer, i int) (int, error) {
+	return i, nil
+}
+
 func parseLetAssignStmt(parser *Parser, lexer lx.Lexer, i int) (int, error) {
 	k, e := matchToken(lexer, lx.TOKEN_LET, i)
 	if e != nil {
@@ -144,7 +148,7 @@ func parseLetAssignStmt(parser *Parser, lexer lx.Lexer, i int) (int, error) {
 		return k, e
 	}
 
-	k, e = parseLetAssignStmt(parser, lexer, k)
+	k, e = parseExpressions(parser, lexer, k)
 	if e != nil {
 		return k, e
 	}
