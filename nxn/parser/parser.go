@@ -129,7 +129,27 @@ func parseStatements(parser *Parser, lexer lx.Lexer, i int) (int, error) {
 }
 
 func parseLetAssignStmt(parser *Parser, lexer lx.Lexer, i int) (int, error) {
-	return i, nil
+	k, e := matchToken(lexer, lx.TOKEN_LET, i)
+	if e != nil {
+		return k, e
+	}
+
+	k, e = matchToken(lexer, lx.TOKEN_IDVAL, k)
+	if e != nil {
+		return k, e
+	}
+
+	k, e = matchToken(lexer, lx.TOKEN_EQ, k)
+	if e != nil {
+		return k, e
+	}
+
+	k, e = parseLetAssignStmt(parser, lexer, k)
+	if e != nil {
+		return k, e
+	}
+
+	return k, e
 }
 
 func parseType(parser *Parser, lexer lx.Lexer, i int) (int, error) {
