@@ -1,2 +1,10 @@
+(ocamllex
+ (modules nxnLexer))
+
+(menhir
+ (modules nxnParser))
+
 (library
- (name nxn))
+ (name nxn)
+ (preprocess
+  (pps ppx_deriving.show)))
