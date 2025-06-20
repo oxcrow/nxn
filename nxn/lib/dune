@@ -1,2 +1,15 @@
+(ocamllex
+ (modules nxnLexer))
+
+(menhir
+ (modules nxnParser))
+
+(env
+ (dev
+  (flags
+   (:standard -w -A))))
+
 (library
- (name nxn))
+ (name nxn)
+ (preprocess
+  (pps ppx_deriving.show)))

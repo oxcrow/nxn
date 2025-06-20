@@ -9,6 +9,8 @@
 
 (license RESTRICTED)
 
+(using menhir 3.0)
+
 (package
  (name nxn)
  (synopsis "nxn compiler.")
