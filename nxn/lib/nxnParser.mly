@@ -20,8 +20,8 @@
 %token RETURN
 %token EOF
 
-(* Highest priority at the bottom *)
 (* Lowest priority at the top *)
+(* Highest priority at the bottom *)
 %right EQUAL
 %left PLUS MINUS
 %left STAR SLASH
