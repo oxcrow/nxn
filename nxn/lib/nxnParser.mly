@@ -36,7 +36,7 @@ file:
     | e = nonempty_list(entities) EOF {NxnAst.File (e)}
 
 entities:
-    | FN i=id; LPAREN RPAREN t=types; b=blocks; { NxnAst.Function {id=i; typex=t; block=b;} }
+    | FN i=id; LPAREN RPAREN t=types; b=blocks; { NxnAst.Function {id=i; type'=t; block=b;} }
 
 blocks:
     | LBRACE s=list(statements); RBRACE { NxnAst.Block {stmts=s} }
@@ -46,8 +46,8 @@ statements:
     | RETURN x=expressions; { NxnAst.ReturnStmt {expr=x} }
 
 expressions:
-    | x=terminals; { NxnAst.TerminalExpr {x=x} }
-    | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {x=i} }
+    | x=terminals; { NxnAst.TerminalExpr {x=x; type'=NxnAst.TypeNone} }
+    | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {x=i; type'=NxnAst.TypeNone} }
 
 terminals:
     | x=INTVAL; { NxnAst.IntVal {x=x} }
