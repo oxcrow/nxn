@@ -7,5 +7,5 @@ nxn
 
 *nxn* is being developed to be a high performance general purpose language.
 
-*(Note: Latest code is hosted on `dev` branches. Not `master`.)*
+*(Note: This is a work in progress (pre-alpha).)*
 
