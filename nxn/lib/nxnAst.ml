@@ -41,7 +41,7 @@ module Get = struct
       | Function f -> ( match f.id with Id i -> i.x)
       | _ -> Error.todo @@ "Entity Id." ^ Error.loc
 
-    let ty x =
+    let type' x =
       match x with
       | Function f -> f.type'
       | _ -> Error.todo @@ "Entity type." ^ Error.loc

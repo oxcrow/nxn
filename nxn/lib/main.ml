@@ -28,36 +28,41 @@ let envir ast =
     1. Ensure that there are no duplicate entities with the same name
   *)
 
-  (* Create environment list *)
+  (* Create environment record list *)
   let envlist entities =
     List.map
       (fun entity ->
         match entity with
         | NxnAst.Function _ ->
             let id = NxnAst.Get.Entity.id entity in
-            let ty = NxnAst.Get.Entity.ty entity in
-            (id, ty)
+            let type' = NxnAst.Get.Entity.type' entity in
+            (id, type')
         | _ -> Error.todo @@ "Environment for entity." ^ Error.loc)
       entities
   in
 
-  (* Validate environment *)
-  let validate env =
+  (* Validate environment records *)
+  let validate records =
     let rec count id n = function
       | [] -> n
-      | (x, _) :: t -> if x = id then count id (n + 1) t else count id n t
+      | (x, _) :: tl -> if x = id then count id (n + 1) tl else count id n tl
     in
-    let counts = List.map (fun (id, _) -> count id 0 env) env in
+    let counts = List.map (fun (id, _) -> count id 0 records) records in
     (* We should report which identifier has multiple ocurrances *)
     List.iter
       (fun n -> if n > 1 then failwith "Multiple occurances of identifier.")
       counts;
-    env
+    records
   in
 
-  let env =
+  let functions =
     match ast with NxnAst.File entities -> envlist entities |> validate
   in
+  let env =
+    Env.File
+      { name = "main.nxn"; functions; structs = []; enums = []; vars = [] }
+  in
+
   env
 
 (** Infer and check types *)
@@ -81,10 +86,12 @@ let infer ast env =
               let type' = NxnAst.TypeInt in
               (type', NxnAst.Set.Expr.with_type expr type')
           | NxnAst.IdVal i ->
-              let type' = List.assoc (NxnAst.Get.id i.x) env in
+              let id = NxnAst.Get.id i.x in
+              let type' = Env.Get.File.var_type id env |> Error.some in
               (type', NxnAst.Set.Expr.with_type expr type'))
       | NxnAst.InvokeExpr i ->
-          let type' = List.assoc (NxnAst.Get.id i.x) env in
+          let id = NxnAst.Get.id i.x in
+          let type' = Env.Get.File.function_type id env |> Error.some in
           (type', NxnAst.Set.Expr.with_type expr type')
     in
     (* write @@ NxnAst.show_expressions expr ^ " -> " ^ NxnAst.show_types type'; *)
@@ -98,7 +105,7 @@ let infer ast env =
           let id = NxnAst.Get.id ls.id in
           let type', expr = infer_expr ls.expr env in
           let stmt = NxnAst.Set.Stmt.with_expr stmt expr in
-          let env = (id, type') :: env in
+          let env = Env.Add.File.var_type id type' env in
           Some (env, stmt)
       | NxnAst.ReturnStmt rs ->
           let _, expr = infer_expr rs.expr env in
@@ -162,9 +169,7 @@ let main =
   let ast = parse code in
   let env = envir ast in
   let hir = infer ast env in
-  let mir = lower hir env in
 
   printast hir;
-  ignore mir;
   write "+";
   unit
