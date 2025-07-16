@@ -46,12 +46,12 @@ statements:
     | RETURN x=expressions; { NxnAst.ReturnStmt {expr=x} }
 
 expressions:
-    | x=terminals; { NxnAst.TerminalExpr {x=x; type'=NxnAst.TypeNone} }
-    | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {x=i; type'=NxnAst.TypeNone} }
+    | x=terminals; { NxnAst.TerminalExpr {value=x; type'=NxnAst.TypeNone} }
+    | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {value=i; type'=NxnAst.TypeNone} }
 
 terminals:
-    | x=INTVAL; { NxnAst.IntVal {x=x} }
-    | x=id; { NxnAst.IdVal {x=x} }
+    | x=INTVAL; { NxnAst.IntVal {value=x} }
+    | x=id; { NxnAst.IdVal {value=x} }
 
 types:
     | { NxnAst.TypeUnit }
@@ -59,7 +59,7 @@ types:
     | INT { NxnAst.TypeInt }
 
 id:
-    | loc=locate; i=IDVAL; { NxnAst.Id {x=i; loc=loc} }
+    | loc=locate; i=IDVAL; { NxnAst.Id {value=i; loc=loc} }
 
 let locate == {
     let startpos: Lexing.position = $startpos in

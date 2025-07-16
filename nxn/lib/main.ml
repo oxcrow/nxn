@@ -81,16 +81,16 @@ let infer ast env =
     let type', expr =
       match expr with
       | NxnAst.TerminalExpr t -> (
-          match t.x with
+          match t.value with
           | NxnAst.IntVal _ ->
               let type' = NxnAst.TypeInt in
               (type', NxnAst.Set.Expr.with_type expr type')
           | NxnAst.IdVal i ->
-              let id = NxnAst.Get.id i.x in
+              let id = NxnAst.Get.id i.value in
               let type' = Env.Get.File.var_type id env |> Error.some in
               (type', NxnAst.Set.Expr.with_type expr type'))
       | NxnAst.InvokeExpr i ->
-          let id = NxnAst.Get.id i.x in
+          let id = NxnAst.Get.id i.value in
           let type' = Env.Get.File.function_type id env |> Error.some in
           (type', NxnAst.Set.Expr.with_type expr type')
     in

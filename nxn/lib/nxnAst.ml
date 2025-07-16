@@ -21,24 +21,24 @@ and statements =
 [@@deriving show { with_path = false }]
 
 and expressions =
-  | TerminalExpr of { x : terminals; type' : types }
-  | InvokeExpr of { x : id; type' : types }
+  | TerminalExpr of { value : terminals; type' : types }
+  | InvokeExpr of { value : id; type' : types }
 [@@deriving show { with_path = false }]
 
-and terminals = IntVal of { x : int } | IdVal of { x : id }
+and terminals = IntVal of { value : int } | IdVal of { value : id }
 [@@deriving show { with_path = false }]
 
 and types = TypeUnit | TypeInt | TypeDerived of { id : id } | TypeNone
 [@@deriving show { with_path = false }]
 
-and id = Id of { x : string; loc : loc }
+and id = Id of { value : string; loc : loc }
 [@@deriving show { with_path = false }]
 
 module Get = struct
   module Entity = struct
     let id x =
       match x with
-      | Function f -> ( match f.id with Id i -> i.x)
+      | Function f -> ( match f.id with Id i -> i.value)
       | _ -> Error.todo @@ "Entity Id." ^ Error.loc
 
     let type' x =
@@ -48,7 +48,7 @@ module Get = struct
   end
 
   module Id = struct
-    let id x = match x with Id i -> i.x
+    let id x = match x with Id i -> i.value
   end
 
   let id x = Id.id x
@@ -65,7 +65,7 @@ module Set = struct
   module Expr = struct
     let with_type x t =
       match x with
-      | TerminalExpr y -> TerminalExpr { x = y.x; type' = t }
-      | InvokeExpr y -> InvokeExpr { x = y.x; type' = t }
+      | TerminalExpr y -> TerminalExpr { value = y.value; type' = t }
+      | InvokeExpr y -> InvokeExpr { value = y.value; type' = t }
   end
 end
