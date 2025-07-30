@@ -65,9 +65,9 @@ let envir ast =
 
   env
 
-(** Infer and check types *)
+(** Infer types *)
 let infer ast env =
-  (* Recursively  infer and check types
+  (* Recursively infer types
 
      1. Iterate through all functions
      2. Iterate through all statements inside each function
@@ -76,6 +76,11 @@ let infer ast env =
 
     In the end we will create a statically typed AST where every
     statement and expression's type is resolved without ambiguity.
+
+    Note: However the the types will not be checked until later.
+    For example, this function won't check if the returned statement
+    has the same type as is expected by function's return type.
+    It won't check the types passsed as function arguments. etc.
   *)
   let infer_expr expr env =
     let type', expr =
@@ -154,6 +159,42 @@ let infer ast env =
 
   hir
 
+(** Type check the High level AST *)
+let check ast =
+  (* Recursively check types
+
+     1. Iterate through all functions
+     2. Iterate through all statements inside each function
+     3. Check types for functions, structs, variables, etc.
+
+    In the end we will have a completely type checked AST.
+  *)
+  let check_return_stmts stmts type' =
+    List.iter
+      (fun stmt ->
+        match stmt with
+        | NxnAst.ReturnStmt _ ->
+            if NxnAst.Get.Stmt.type' stmt <> type' then
+              failwith @@ "Function return type check failed." ^ Error.loc
+        | _ -> unit)
+      stmts
+  in
+
+  let check_entities entities =
+    let check entity =
+      match entity with
+      | NxnAst.Function f -> (
+          match f.block with
+          | NxnAst.Block b -> check_return_stmts b.stmts f.type')
+      | _ -> Error.todo @@ "Check entity type." ^ Error.loc
+    in
+    List.iter check entities
+  in
+
+  let _ = match ast with NxnAst.File entities -> check_entities entities in
+
+  ast
+
 (** Lower / desugar the High level AST to C99 compatible AST. *)
 let lower ast env =
   ignore ast;
@@ -169,6 +210,7 @@ let main =
   let ast = parse code in
   let env = envir ast in
   let hir = infer ast env in
+  let hir = check hir in
 
   printast hir;
   write "+";

@@ -47,6 +47,18 @@ module Get = struct
       | _ -> Error.todo @@ "Entity type." ^ Error.loc
   end
 
+  module Expr = struct
+    let type' x =
+      match x with TerminalExpr e -> e.type' | InvokeExpr e -> e.type'
+  end
+
+  module Stmt = struct
+    let type' x =
+      match x with
+      | ReturnStmt s -> Expr.type' s.expr
+      | _ -> Error.todo @@ "Stmt type." ^ Error.loc
+  end
+
   module Id = struct
     let id x = match x with Id i -> i.value
   end
