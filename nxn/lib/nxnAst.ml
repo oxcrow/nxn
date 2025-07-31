@@ -25,10 +25,18 @@ and expressions =
   | InvokeExpr of { value : id; type' : types }
 [@@deriving show { with_path = false }]
 
-and terminals = IntVal of { value : int } | IdVal of { value : id }
+and terminals =
+  | IntVal of { value : int }
+  | FloatVal of { value : float }
+  | IdVal of { value : id }
 [@@deriving show { with_path = false }]
 
-and types = TypeUnit | TypeInt | TypeDerived of { id : id } | TypeNone
+and types =
+  | TypeUnit
+  | TypeInt
+  | TypeFloat
+  | TypeDerived of { id : id }
+  | TypeNone
 [@@deriving show { with_path = false }]
 
 and id = Id of { value : string; loc : loc }

@@ -1,10 +1,12 @@
 %token <int> INTVAL
+%token <float> FLOATVAL
 %token <string> IDVAL
 
 %token FN
 %token LET
 
 %token INT
+%token FLOAT
 
 %token SEMICOLON
 %token EQUAL
@@ -51,12 +53,14 @@ expressions:
 
 terminals:
     | x=INTVAL; { NxnAst.IntVal {value=x} }
+    | x=FLOATVAL; { NxnAst.FloatVal {value=x} }
     | x=id; { NxnAst.IdVal {value=x} }
 
 types:
     | { NxnAst.TypeUnit }
     | LPAREN RPAREN { NxnAst.TypeUnit }
     | INT { NxnAst.TypeInt }
+    | FLOAT { NxnAst.TypeFloat }
 
 id:
     | loc=locate; i=IDVAL; { NxnAst.Id {value=i; loc=loc} }

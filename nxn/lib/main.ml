@@ -90,6 +90,9 @@ let infer ast env =
           | NxnAst.IntVal _ ->
               let type' = NxnAst.TypeInt in
               (type', NxnAst.Set.Expr.with_type expr type')
+          | NxnAst.FloatVal _ ->
+              let type' = NxnAst.TypeFloat in
+              (type', NxnAst.Set.Expr.with_type expr type')
           | NxnAst.IdVal i ->
               let id = NxnAst.Get.id i.value in
               let type' = Env.Get.File.var_type id env |> Error.some in
