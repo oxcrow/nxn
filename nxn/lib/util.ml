@@ -1,6 +1,15 @@
 let char_list_of_string s = List.init (String.length s) (String.get s)
 let string_of_char_list l = String.of_seq (List.to_seq l)
 
+(** Quote a string *)
+let quote_of_string s = "\"" ^ s ^ "\""
+
+(** Quote a string with space surrounding it *)
+let quote_space_of_string s = " \"" ^ s ^ "\" "
+
+(** Group a string with parenthesis surrounding it *)
+let paren_group_of_string s = "(" ^ s ^ ")"
+
 (** Convert string to Nim programming language's style *)
 let nim_case s =
   (*

@@ -77,30 +77,111 @@ let infer ast env =
     In the end we will create a statically typed AST where every
     statement and expression's type is resolved without ambiguity.
 
-    Note: However the the types will not be checked until later.
+    Note: However note that the types will not be checked until later.
     For example, this function won't check if the returned statement
     has the same type as is expected by function's return type.
     It won't check the types passsed as function arguments. etc.
+
+    I don't know if that is a good or bad idea.
   *)
-  let infer_expr expr env =
+  let rec infer_expr_type expr env =
+    let type' =
+      match expr with
+      | NxnAst.TerminalExpr term -> (
+          match term.value with
+          | NxnAst.UnitVal -> NxnAst.UnitType
+          | NxnAst.IntVal _ -> NxnAst.IntType
+          | NxnAst.FloatVal _ -> NxnAst.FloatType
+          | NxnAst.IdVal id ->
+              let id = NxnAst.Get.id id.value in
+              let type' =
+                match Env.Get.File.var_type id env with
+                | Some type' -> type'
+                | None ->
+                    failwith @@ "Identifier"
+                    ^ Util.quote_space_of_string id
+                    ^ "does not exist in environment."
+                    ^ Util.paren_group_of_string Error.loc
+              in
+              type'
+          | NxnAst.TupleVal tuple ->
+              let expr_type =
+                List.map (fun expr -> infer_expr_type expr env) tuple.value
+              in
+              let type' = NxnAst.TupleType { value = expr_type } in
+              type')
+      | NxnAst.InvokeExpr invoke ->
+          let id = NxnAst.Get.id invoke.value in
+          let type' =
+            match Env.Get.File.function_type id env with
+            | Some type' -> type'
+            | None ->
+                failwith @@ "Identifier"
+                ^ Util.quote_space_of_string id
+                ^ "does not exist in environment."
+                ^ Util.paren_group_of_string Error.loc
+          in
+          type'
+    in
+    type'
+  in
+
+  let rec infer_expr expr env =
     let type', expr =
       match expr with
-      | NxnAst.TerminalExpr t -> (
-          match t.value with
+      | NxnAst.TerminalExpr term -> (
+          match term.value with
+          | NxnAst.UnitVal ->
+              let type' = infer_expr_type expr env in
+              let expr = NxnAst.Set.Expr.with_type expr type' in
+              (type', expr)
           | NxnAst.IntVal _ ->
-              let type' = NxnAst.TypeInt in
-              (type', NxnAst.Set.Expr.with_type expr type')
+              let type' = infer_expr_type expr env in
+              let expr = NxnAst.Set.Expr.with_type expr type' in
+              (type', expr)
           | NxnAst.FloatVal _ ->
-              let type' = NxnAst.TypeFloat in
-              (type', NxnAst.Set.Expr.with_type expr type')
-          | NxnAst.IdVal i ->
-              let id = NxnAst.Get.id i.value in
-              let type' = Env.Get.File.var_type id env |> Error.some in
-              (type', NxnAst.Set.Expr.with_type expr type'))
-      | NxnAst.InvokeExpr i ->
-          let id = NxnAst.Get.id i.value in
-          let type' = Env.Get.File.function_type id env |> Error.some in
-          (type', NxnAst.Set.Expr.with_type expr type')
+              let type' = infer_expr_type expr env in
+              let expr = NxnAst.Set.Expr.with_type expr type' in
+              (type', expr)
+          | NxnAst.IdVal _ ->
+              let type' = infer_expr_type expr env in
+              let expr = NxnAst.Set.Expr.with_type expr type' in
+              (type', expr)
+          | NxnAst.TupleVal tuple ->
+              let infer_tuple_values values =
+                let rec aux values acc =
+                  match values with
+                  | [] -> List.rev acc
+                  | hd :: tl ->
+                      let _type', expr = infer_expr hd env in
+                      let acc = expr :: acc in
+                      aux tl acc
+                in
+                aux values []
+              in
+              let infer_tuple_types values =
+                let rec aux values acc =
+                  match values with
+                  | [] -> List.rev acc
+                  | hd :: tl ->
+                      let type' = NxnAst.Get.Expr.type' hd in
+                      let acc = type' :: acc in
+                      aux tl acc
+                in
+                aux values []
+              in
+              let values = infer_tuple_values tuple.value in
+              let types = infer_tuple_types values in
+              let type' = NxnAst.TupleType { value = types } in
+              let expr =
+                NxnAst.TerminalExpr
+                  { value = NxnAst.TupleVal { value = values }; type' }
+              in
+              (type', expr))
+      | NxnAst.InvokeExpr _ ->
+          let type' = infer_expr_type expr env in
+          let expr = NxnAst.Set.Expr.with_type expr type' in
+          (type', expr)
     in
     (* write @@ NxnAst.show_expressions expr ^ " -> " ^ NxnAst.show_types type'; *)
     (type', expr)
@@ -110,12 +191,55 @@ let infer ast env =
     let infer_stmt env stmt =
       match stmt with
       | NxnAst.LetStmt ls ->
-          let id = NxnAst.Get.id ls.id in
+          (* Infer variable types *)
+          let rec infer_vars vars type' =
+            let vars =
+              match vars with
+              | NxnAst.Var v -> NxnAst.Var { id = v.id; type' }
+              | NxnAst.TupleVar v ->
+                  let vars =
+                    List.map
+                      (fun (var, type') -> infer_vars var type')
+                      (List.combine v.var
+                         (match type' with
+                         | TupleType t -> t.value
+                         | _ -> Error.never "TupleVar's type is not TupleType."))
+                  in
+                  NxnAst.TupleVar { var = vars }
+            in
+            vars
+          in
+          (* Extend environment with new variables *)
+          let rec extend_env env vars =
+            let env =
+              match vars with
+              | NxnAst.Var v ->
+                  let id = NxnAst.Get.id v.id in
+                  let type' = v.type' in
+                  Env.Add.File.var_type id type' env
+              | NxnAst.TupleVar v ->
+                  let rec aux env var =
+                    match var with
+                    | [] -> env
+                    | hd :: tl ->
+                        let env = extend_env env hd in
+                        aux env tl
+                  in
+                  aux env v.var
+            in
+            env
+          in
           let type', expr = infer_expr ls.expr env in
+          let vars = infer_vars ls.var type' in
           let stmt = NxnAst.Set.Stmt.with_expr stmt expr in
-          let env = Env.Add.File.var_type id type' env in
+          let stmt = NxnAst.Set.Stmt.with_var stmt vars in
+          let env = extend_env env vars in
           Some (env, stmt)
       | NxnAst.ReturnStmt rs ->
+          let _, expr = infer_expr rs.expr env in
+          let stmt = NxnAst.Set.Stmt.with_expr stmt expr in
+          Some (env, stmt)
+      | NxnAst.ReturnExprStmt rs ->
           let _, expr = infer_expr rs.expr env in
           let stmt = NxnAst.Set.Stmt.with_expr stmt expr in
           Some (env, stmt)
@@ -179,6 +303,9 @@ let check ast =
         | NxnAst.ReturnStmt _ ->
             if NxnAst.Get.Stmt.type' stmt <> type' then
               failwith @@ "Function return type check failed." ^ Error.loc
+        | NxnAst.ReturnExprStmt _ ->
+            if NxnAst.Get.Stmt.type' stmt <> type' then
+              failwith @@ "Function return type check failed." ^ Error.loc
         | _ -> unit)
       stmts
   in
@@ -211,9 +338,9 @@ let printast ast = write ("+ " ^ NxnAst.show_file ast ^ "\n")
 let main =
   let code = File.read_file_content "x.nxn" in
   let ast = parse code in
+
   let env = envir ast in
-  let hir = infer ast env in
-  let hir = check hir in
+  let hir = infer ast env |> check in
 
   printast hir;
   write "+";

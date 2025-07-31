@@ -10,37 +10,36 @@ and entities =
   | Function of { id : id; type' : types; block : blocks }
   | Struct
   | Enum
-[@@deriving show { with_path = false }]
 
 and blocks = Block of { stmts : statements list }
-[@@deriving show { with_path = false }]
 
 and statements =
-  | LetStmt of { id : id; expr : expressions }
+  | LetStmt of { var : var; expr : expressions }
   | ReturnStmt of { expr : expressions }
-[@@deriving show { with_path = false }]
+  | ReturnExprStmt of { expr : expressions }
 
 and expressions =
   | TerminalExpr of { value : terminals; type' : types }
   | InvokeExpr of { value : id; type' : types }
-[@@deriving show { with_path = false }]
+
+and var = Var of { id : id; type' : types } | TupleVar of { var : var list }
 
 and terminals =
+  | UnitVal
   | IntVal of { value : int }
   | FloatVal of { value : float }
   | IdVal of { value : id }
-[@@deriving show { with_path = false }]
+  | TupleVal of { value : expressions list }
 
 and types =
-  | TypeUnit
-  | TypeInt
-  | TypeFloat
-  | TypeDerived of { id : id }
-  | TypeNone
-[@@deriving show { with_path = false }]
+  | UnitType
+  | IntType
+  | FloatType
+  | DerivedType of { id : id }
+  | TupleType of { value : types list }
+  | NoneType
 
 and id = Id of { value : string; loc : loc }
-[@@deriving show { with_path = false }]
 
 module Get = struct
   module Entity = struct
@@ -64,13 +63,34 @@ module Get = struct
     let type' x =
       match x with
       | ReturnStmt s -> Expr.type' s.expr
+      | ReturnExprStmt s -> Expr.type' s.expr
       | _ -> Error.todo @@ "Stmt type." ^ Error.loc
+  end
+
+  module Var = struct
+    let id x =
+      match x with
+      | Var v -> v.id
+      | _ -> Error.todo @@ "Variable id." ^ Error.loc
+
+    let ids x = List.map (fun y -> id y) x
+
+    let id_str x =
+      match x with
+      | Var v -> ( match v.id with Id i -> i.value)
+      | _ -> Error.todo @@ "Variable id." ^ Error.loc
+
+    let type' x =
+      match x with
+      | Var v -> v.type'
+      | _ -> Error.todo @@ "Variable id." ^ Error.loc
   end
 
   module Id = struct
     let id x = match x with Id i -> i.value
   end
 
+  let ids x = Var.ids x
   let id x = Id.id x
 end
 
@@ -78,8 +98,14 @@ module Set = struct
   module Stmt = struct
     let with_expr x e =
       match x with
-      | LetStmt y -> LetStmt { id = y.id; expr = e }
+      | LetStmt y -> LetStmt { var = y.var; expr = e }
       | ReturnStmt _ -> ReturnStmt { expr = e }
+      | ReturnExprStmt _ -> ReturnExprStmt { expr = e }
+
+    let with_var x v =
+      match x with
+      | LetStmt y -> LetStmt { var = v; expr = y.expr }
+      | _ -> Error.never "Never use with anything else except let statements"
   end
 
   module Expr = struct

@@ -25,6 +25,7 @@ rule token = parse
   | "float" { NxnParser.FLOAT }
 
   | ";" { NxnParser.SEMICOLON}
+  | "," { NxnParser.COMMA}
   | "=" { NxnParser.EQUAL }
   | "{" { NxnParser.LBRACE }
   | "}" { NxnParser.RBRACE }

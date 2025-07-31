@@ -9,6 +9,7 @@
 %token FLOAT
 
 %token SEMICOLON
+%token COMMA
 %token EQUAL
 %token LBRACE
 %token RBRACE
@@ -34,49 +35,60 @@
 %%
 
 file:
-    | EOF { NxnAst.File [] }
-    | e = nonempty_list(entities) EOF {NxnAst.File (e)}
+  | EOF { NxnAst.File [] }
+  | e = nonempty_list(entities) EOF {NxnAst.File (e)}
 
 entities:
-    | FN i=id; LPAREN RPAREN t=types; b=blocks; { NxnAst.Function {id=i; type'=t; block=b;} }
+  | FN i=id; LPAREN RPAREN t=types; b=blocks; { NxnAst.Function {id=i; type'=t; block=b;} }
 
 blocks:
-    | LBRACE s=list(statements); RBRACE { NxnAst.Block {stmts=s} }
+  | LBRACE s=list(statements); r=option(return_expression); RBRACE { NxnAst.Block {stmts=(match r with | Some x -> List.rev (x::s) | None -> s)} }
 
 statements:
-    | LET i=id; EQUAL e=expressions; { NxnAst.LetStmt {id=i; expr=e;} }
-    | RETURN x=expressions; { NxnAst.ReturnStmt {expr=x} }
+  | LET v=var; EQUAL e=expressions; SEMICOLON { NxnAst.LetStmt {var=v; expr=e;} }
+  | RETURN x=expressions; SEMICOLON { NxnAst.ReturnStmt {expr=x} }
+
+return_expression:
+  | x=expressions; { NxnAst.ReturnExprStmt {expr=x} }
 
 expressions:
-    | x=terminals; { NxnAst.TerminalExpr {value=x; type'=NxnAst.TypeNone} }
-    | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {value=i; type'=NxnAst.TypeNone} }
+  | x=terminals; { NxnAst.TerminalExpr {value=x; type'=NxnAst.NoneType} }
+  | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {value=i; type'=NxnAst.NoneType} }
+  | LPAREN x=expressions; RPAREN { x } (* Is the precedence of ( ) correct? *)
+
+var:
+  | i=id; { NxnAst.Var {id=i; type'=NxnAst.NoneType} }
+  | LPAREN v=separated_nonempty_list(COMMA, var); RPAREN { NxnAst.TupleVar { var=v; }  }
 
 terminals:
-    | x=INTVAL; { NxnAst.IntVal {value=x} }
-    | x=FLOATVAL; { NxnAst.FloatVal {value=x} }
-    | x=id; { NxnAst.IdVal {value=x} }
+  | LPAREN RPAREN { NxnAst.UnitVal }
+  | x=INTVAL; { NxnAst.IntVal {value=x} }
+  | x=FLOATVAL; { NxnAst.FloatVal {value=x} }
+  | x=id; { NxnAst.IdVal {value=x} }
+  | LPAREN x=separated_nonempty_list(COMMA, expressions); RPAREN { NxnAst.TupleVal {value=x} }
 
 types:
-    | { NxnAst.TypeUnit }
-    | LPAREN RPAREN { NxnAst.TypeUnit }
-    | INT { NxnAst.TypeInt }
-    | FLOAT { NxnAst.TypeFloat }
+  | { NxnAst.UnitType }
+  | LPAREN RPAREN { NxnAst.UnitType }
+  | INT { NxnAst.IntType }
+  | FLOAT { NxnAst.FloatType }
+  | LPAREN t=separated_nonempty_list(COMMA, types) RPAREN { NxnAst.TupleType {value=t;} }
 
 id:
-    | loc=locate; i=IDVAL; { NxnAst.Id {value=i; loc=loc} }
+  | loc=locate; i=IDVAL; { NxnAst.Id {value=i; loc=loc} }
 
 let locate == {
-    let startpos: Lexing.position = $startpos in
-    let lnum = startpos.pos_lnum in
-    let cnum = startpos.pos_cnum - startpos.pos_bol + 2 in
-    let loc = NxnAst.Loc{lnum=lnum; cnum=cnum} in
-    loc
+  let startpos: Lexing.position = $startpos in
+  let lnum = startpos.pos_lnum in
+  let cnum = startpos.pos_cnum - startpos.pos_bol + 2 in
+  let loc = NxnAst.Loc{lnum=lnum; cnum=cnum} in
+  loc
 }
 
 let locate_node(node) == data=node; {
-    let startpos: Lexing.position = $startpos in
-    let lnum = startpos.pos_lnum in
-    let cnum = startpos.pos_cnum - startpos.pos_bol + 2 in
-    let loc = NxnAst.Loc{lnum=lnum; cnum=cnum} in
-    (data, loc)
+  let startpos: Lexing.position = $startpos in
+  let lnum = startpos.pos_lnum in
+  let cnum = startpos.pos_cnum - startpos.pos_bol + 2 in
+  let loc = NxnAst.Loc{lnum=lnum; cnum=cnum} in
+  (data, loc)
 }
