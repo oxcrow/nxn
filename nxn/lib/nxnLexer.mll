@@ -1,7 +1,9 @@
 let whitespace = [' ''\t']
 let newline = ['\n']
-let digit = ['0'-'9']*
-let integer = ['-''+']? digit
+let digit = ['0'-'9']
+let integer = ['-''+']? digit+
+let float = ['-''+']? digit+ ['.'] digit+
+let exponent = ['-''+']? digit+ ['.'] digit+ ['e'] ['-''+']? digit+
 let id = ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_']*
 let comment = "//"[^'\n']*newline
 
@@ -13,11 +15,14 @@ rule token = parse
 
   (* Terminals *)
   | integer as lexeme { NxnParser.INTVAL(int_of_string lexeme) }
+  | float as lexeme { NxnParser.FLOATVAL(float_of_string lexeme) }
+  | exponent as lexeme { NxnParser.FLOATVAL(float_of_string lexeme) }
 
   | "fn" { NxnParser.FN }
   | "let" { NxnParser.LET }
 
   | "int" { NxnParser.INT }
+  | "float" { NxnParser.FLOAT }
 
   | ";" { NxnParser.SEMICOLON}
   | "=" { NxnParser.EQUAL }
