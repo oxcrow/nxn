@@ -10,43 +10,43 @@ and entities =
   | Function of { id : id; type' : types; block : blocks }
   | Struct
   | Enum
-[@@deriving show { with_path = false }]
 
 and blocks = Block of { stmts : statements list }
-[@@deriving show { with_path = false }]
 
 and statements =
   | LetStmt of { id : id; expr : expressions }
   | ReturnStmt of { expr : expressions }
-[@@deriving show { with_path = false }]
 
 and expressions =
   | TerminalExpr of { value : terminals; type' : types }
   | InvokeExpr of { value : id; type' : types }
-[@@deriving show { with_path = false }]
 
 and terminals =
   | IntVal of { value : int }
   | FloatVal of { value : float }
   | IdVal of { value : id }
-[@@deriving show { with_path = false }]
+  | TupleVal of { value : expressions list }
 
 and types =
   | TypeUnit
   | TypeInt
   | TypeFloat
   | TypeDerived of { id : id }
+  | TypeTuple of { value : types list }
   | TypeNone
-[@@deriving show { with_path = false }]
 
-and id = Id of { value : string; loc : loc }
-[@@deriving show { with_path = false }]
+and id =
+  | Id of { value : string; loc : loc }
+  | Ids of { value : string list; loc : loc }
 
 module Get = struct
   module Entity = struct
     let id x =
       match x with
-      | Function f -> ( match f.id with Id i -> i.value)
+      | Function f -> (
+          match f.id with
+          | Id i -> i.value
+          | Ids _ -> Error.never "Function can never have multiple ids.")
       | _ -> Error.todo @@ "Entity Id." ^ Error.loc
 
     let type' x =
@@ -68,7 +68,10 @@ module Get = struct
   end
 
   module Id = struct
-    let id x = match x with Id i -> i.value
+    let id x =
+      match x with
+      | Id i -> i.value
+      | Ids _ -> Error.never "Use ids function to read multiple ids."
   end
 
   let id x = Id.id x

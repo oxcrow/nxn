@@ -96,7 +96,10 @@ let infer ast env =
           | NxnAst.IdVal i ->
               let id = NxnAst.Get.id i.value in
               let type' = Env.Get.File.var_type id env |> Error.some in
-              (type', NxnAst.Set.Expr.with_type expr type'))
+              (type', NxnAst.Set.Expr.with_type expr type')
+          | NxnAst.TupleVal _ ->
+              (* TODO: Infer tuple value's type (recursively) *)
+              (NxnAst.TypeNone, expr))
       | NxnAst.InvokeExpr i ->
           let id = NxnAst.Get.id i.value in
           let type' = Env.Get.File.function_type id env |> Error.some in
@@ -211,10 +214,12 @@ let printast ast = write ("+ " ^ NxnAst.show_file ast ^ "\n")
 let main =
   let code = File.read_file_content "x.nxn" in
   let ast = parse code in
+
   let env = envir ast in
   let hir = infer ast env in
   let hir = check hir in
 
   printast hir;
+  ignore ast;
   write "+";
   unit

@@ -9,6 +9,7 @@
 %token FLOAT
 
 %token SEMICOLON
+%token COMMA
 %token EQUAL
 %token LBRACE
 %token RBRACE
@@ -50,11 +51,13 @@ statements:
 expressions:
     | x=terminals; { NxnAst.TerminalExpr {value=x; type'=NxnAst.TypeNone} }
     | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {value=i; type'=NxnAst.TypeNone} }
+    | LPAREN x=expressions; RPAREN { x }
 
 terminals:
     | x=INTVAL; { NxnAst.IntVal {value=x} }
     | x=FLOATVAL; { NxnAst.FloatVal {value=x} }
     | x=id; { NxnAst.IdVal {value=x} }
+    | LPAREN x=separated_list(COMMA, expressions); RPAREN { NxnAst.TupleVal {value=x} }
 
 types:
     | { NxnAst.TypeUnit }
