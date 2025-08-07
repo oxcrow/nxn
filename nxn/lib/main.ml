@@ -122,6 +122,7 @@ let infer ast env =
                 ^ Util.paren_group_of_string Error.loc
           in
           type'
+      | NxnAst.BlockExpr _block -> NxnAst.IntType
     in
     type'
   in
@@ -179,6 +180,10 @@ let infer ast env =
               in
               (type', expr))
       | NxnAst.InvokeExpr _ ->
+          let type' = infer_expr_type expr env in
+          let expr = NxnAst.Set.Expr.with_type expr type' in
+          (type', expr)
+      | NxnAst.BlockExpr _ ->
           let type' = infer_expr_type expr env in
           let expr = NxnAst.Set.Expr.with_type expr type' in
           (type', expr)
@@ -301,9 +306,6 @@ let check ast =
       (fun stmt ->
         match stmt with
         | NxnAst.ReturnStmt _ ->
-            if NxnAst.Get.Stmt.type' stmt <> type' then
-              failwith @@ "Function return type check failed." ^ Error.loc
-        | NxnAst.ReturnExprStmt _ ->
             if NxnAst.Get.Stmt.type' stmt <> type' then
               failwith @@ "Function return type check failed." ^ Error.loc
         | _ -> unit)

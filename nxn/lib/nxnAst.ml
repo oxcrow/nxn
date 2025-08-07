@@ -21,6 +21,7 @@ and statements =
 and expressions =
   | TerminalExpr of { value : terminals; type' : types }
   | InvokeExpr of { value : id; type' : types }
+  | BlockExpr of { stmts : statements list; type' : types }
 
 and var = Var of { id : id; type' : types } | TupleVar of { var : var list }
 
@@ -56,14 +57,16 @@ module Get = struct
 
   module Expr = struct
     let type' x =
-      match x with TerminalExpr e -> e.type' | InvokeExpr e -> e.type'
+      match x with
+      | TerminalExpr e -> e.type'
+      | InvokeExpr e -> e.type'
+      | BlockExpr e -> e.type'
   end
 
   module Stmt = struct
     let type' x =
       match x with
       | ReturnStmt s -> Expr.type' s.expr
-      | ReturnExprStmt s -> Expr.type' s.expr
       | _ -> Error.todo @@ "Stmt type." ^ Error.loc
   end
 
@@ -113,5 +116,6 @@ module Set = struct
       match x with
       | TerminalExpr y -> TerminalExpr { value = y.value; type' = t }
       | InvokeExpr y -> InvokeExpr { value = y.value; type' = t }
+      | BlockExpr y -> BlockExpr { stmts = y.stmts; type' = t }
   end
 end

@@ -42,19 +42,23 @@ entities:
   | FN i=id; LPAREN RPAREN t=types; b=blocks; { NxnAst.Function {id=i; type'=t; block=b;} }
 
 blocks:
-  | LBRACE s=list(statements); r=option(return_expression); RBRACE { NxnAst.Block {stmts=(match r with | Some x -> List.rev (x::s) | None -> s)} }
+  | LBRACE s=list(statements); r=option(return_statement); RBRACE { NxnAst.Block {stmts=(match r with | Some x -> List.rev (x::s) | None -> s)} }
 
 statements:
   | LET v=var; EQUAL e=expressions; SEMICOLON { NxnAst.LetStmt {var=v; expr=e;} }
   | RETURN x=expressions; SEMICOLON { NxnAst.ReturnStmt {expr=x} }
 
-return_expression:
-  | x=expressions; { NxnAst.ReturnExprStmt {expr=x} }
-
 expressions:
+  | LPAREN x=expressions; RPAREN { x }
   | x=terminals; { NxnAst.TerminalExpr {value=x; type'=NxnAst.NoneType} }
   | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {value=i; type'=NxnAst.NoneType} }
-  | LPAREN x=expressions; RPAREN { x } (* Is the precedence of ( ) correct? *)
+  | LBRACE s=list(statements); r=option(return_expression); RBRACE { NxnAst.BlockExpr {stmts=(match r with | Some x -> List.rev (x::s) | None -> s);  type'=NxnAst.NoneType} }
+
+return_statement:
+  | x=expressions; { NxnAst.ReturnStmt {expr=x} }
+
+return_expression:
+  | x=expressions; { NxnAst.ReturnExprStmt {expr=x} }
 
 var:
   | i=id; { NxnAst.Var {id=i; type'=NxnAst.NoneType} }

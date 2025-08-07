@@ -1,4 +1,7 @@
-fn main() {
-    let (x,y) = (0,(1,2.0));
-    let (a,(b,c)) = (x,y);
+fn main() int {
+    let y = {
+        let x = 0;
+        x
+    };
+    y
 }
