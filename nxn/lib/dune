@@ -4,6 +4,10 @@
 (menhir
  (modules nxnParser))
 
+(env
+ (dev
+  (flags (:standard -warn-error -A))))
+
 (library
  (name nxn)
  (preprocess
