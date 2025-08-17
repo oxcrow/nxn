@@ -1,4 +1,6 @@
 fn main() int {
-    let x, y = zero();
+    let x, y  = zero();
+    let x, y, = zero();
+    let = zero();
     return x;
 }

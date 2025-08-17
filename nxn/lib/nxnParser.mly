@@ -47,7 +47,7 @@ blocks:
   | LBRACE s=list(statements); RBRACE { NxnAst.Block {stmts=s} }
 
 statements:
-  | LET v=separated_nonempty_list(COMMA, vars); EQUAL e=expressions; SEMICOLON {NxnAst.LetStmt { vars=v; expr=e; } }
+  | LET v=vars; EQUAL e=expressions; SEMICOLON { NxnAst.LetStmt { vars=v; expr=e; } }
   | RETURN x=expressions; SEMICOLON { NxnAst.ReturnStmt {expr=x} }
 
 expressions:
@@ -59,6 +59,11 @@ terminals:
   | x=id; { NxnAst.IdVal {value=x} }
 
 vars:
+  | { [NxnAst.NoneVar] }
+  | v1=var; { [v1] }
+  | v1=var; COMMA v2=vars; { v1 :: v2 }
+
+var:
   | s=state; i=id; t=typedec; { NxnAst.Var {id=i; state=s; type'=t;} }
 
 state:

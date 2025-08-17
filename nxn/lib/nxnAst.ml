@@ -27,7 +27,7 @@ and terminals =
   | FloatVal of { value : float }
   | IdVal of { value : id }
 
-and vars = Var of { id : id; state : state; type' : types option }
+and vars = Var of { id : id; state : state; type' : types option } | NoneVar
 
 and types =
   | UnitType
