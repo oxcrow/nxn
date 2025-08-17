@@ -1,8 +1,4 @@
 fn main() int {
-    let x = zero();
+    let x, y = zero();
     return x;
-}
-
-fn zero() int {
-    return 0;
 }

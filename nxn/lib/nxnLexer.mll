@@ -16,10 +16,15 @@ rule token = parse
 
   | "fn" { NxnParser.FN }
   | "let" { NxnParser.LET }
+  | "con" { NxnParser.CON }
+  | "mut" { NxnParser.MUT }
+  | "var" { NxnParser.VAR }
 
   | "int" { NxnParser.INT }
 
-  | ";" { NxnParser.SEMICOLON}
+  | ";" { NxnParser.SEMICOLON }
+  | ":" { NxnParser.COLON }
+  | "," { NxnParser.COMMA }
   | "=" { NxnParser.EQUAL }
   | "{" { NxnParser.LBRACE }
   | "}" { NxnParser.RBRACE }

@@ -3,10 +3,15 @@
 
 %token FN
 %token LET
+%token CON
+%token MUT
+%token VAR
 
 %token INT
 
 %token SEMICOLON
+%token COLON
+%token COMMA
 %token EQUAL
 %token LBRACE
 %token RBRACE
@@ -42,7 +47,7 @@ blocks:
   | LBRACE s=list(statements); RBRACE { NxnAst.Block {stmts=s} }
 
 statements:
-  | LET i=id; EQUAL e=expressions; SEMICOLON { NxnAst.LetStmt {id=i; expr=e;} }
+  | LET v=separated_nonempty_list(COMMA, vars); EQUAL e=expressions; SEMICOLON {NxnAst.LetStmt { vars=v; expr=e; } }
   | RETURN x=expressions; SEMICOLON { NxnAst.ReturnStmt {expr=x} }
 
 expressions:
@@ -52,6 +57,19 @@ expressions:
 terminals:
   | x=INTVAL; { NxnAst.IntVal {value=x} }
   | x=id; { NxnAst.IdVal {value=x} }
+
+vars:
+  | s=state; i=id; t=typedec; { NxnAst.Var {id=i; state=s; type'=t;} }
+
+state:
+  | { NxnAst.ConstantState }
+  | CON { NxnAst.ConstantState }
+  | MUT { NxnAst.MutableState }
+  | VAR { NxnAst.VariableState }
+
+typedec:
+  | { None }
+  | COLON t=types; { Some(t) }
 
 types:
   | { NxnAst.UnitType }

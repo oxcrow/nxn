@@ -14,13 +14,27 @@ and entities =
 and blocks = Block of { stmts : statements list }
 
 and statements =
-  | LetStmt of { id : id; expr : expressions }
+  | LetStmt of { vars : vars list; expr : expressions }
   | ReturnStmt of { expr : expressions }
 
 and expressions =
   | TerminalExpr of { value : terminals }
   | InvokeExpr of { value : id }
 
-and terminals = IntVal of { value : int } | IdVal of { value : id }
-and types = UnitType | IntType | DerivedType of { id : id }
+and terminals =
+  | UnitVal
+  | IntVal of { value : int }
+  | FloatVal of { value : float }
+  | IdVal of { value : id }
+
+and vars = Var of { id : id; state : state; type' : types option }
+
+and types =
+  | UnitType
+  | IntType
+  | FloatType
+  | DerivedType of { id : id }
+  | NoneType
+
+and state = ConstantState | MutableState | VariableState
 and id = Id of { value : string; loc : loc }
