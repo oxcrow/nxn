@@ -18,13 +18,18 @@ rule token = parse
   | "let" { NxnParser.LET }
   | "con" { NxnParser.CON }
   | "mut" { NxnParser.MUT }
-  | "var" { NxnParser.VAR }
+  | "set" { NxnParser.SET }
 
   | "int" { NxnParser.INT }
 
   | ";" { NxnParser.SEMICOLON }
   | ":" { NxnParser.COLON }
   | "," { NxnParser.COMMA }
+  | ".." { NxnParser.DOTDOT }
+  | "." { NxnParser.DOT }
+  | "?" { NxnParser.QUESTION }
+  | "!" { NxnParser.EXCLAMATION }
+  | "#" { NxnParser.HASH }
   | "=" { NxnParser.EQUAL }
   | "{" { NxnParser.LBRACE }
   | "}" { NxnParser.RBRACE }

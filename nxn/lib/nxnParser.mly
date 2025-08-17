@@ -5,13 +5,18 @@
 %token LET
 %token CON
 %token MUT
-%token VAR
+%token SET
 
 %token INT
 
 %token SEMICOLON
 %token COLON
 %token COMMA
+%token DOTDOT
+%token DOT
+%token QUESTION
+%token EXCLAMATION
+%token HASH
 %token EQUAL
 %token LBRACE
 %token RBRACE
@@ -32,63 +37,67 @@
 %left STAR SLASH
 
 %start file
-%type  <NxnAst.file> file
+%type  <Ast.file> file
 
 %%
 
 file:
-  | EOF { NxnAst.File [] }
-  | e = nonempty_list(entities) EOF {NxnAst.File (e)}
+  | EOF { Ast.File [] }
+  | e = nonempty_list(entities) EOF {Ast.File (e)}
 
 entities:
-  | FN i=id; LPAREN RPAREN t=types; b=blocks; { NxnAst.Function {id=i; typex=t; block=b;} }
+  | FN i=option(id); LPAREN RPAREN t=return_types; b=blocks; { Ast.Function {id=i; type'=t; block=b;} }
 
 blocks:
-  | LBRACE s=list(statements); RBRACE { NxnAst.Block {stmts=s} }
+  | LBRACE s=list(statements); RBRACE { Ast.Block {stmts=s} }
 
 statements:
-  | LET v=vars; EQUAL e=expressions; SEMICOLON { NxnAst.LetStmt { vars=v; expr=e; } }
-  | RETURN x=expressions; SEMICOLON { NxnAst.ReturnStmt {expr=x} }
+  | LET v=vars; EQUAL e=expressions; SEMICOLON { Ast.LetStmt { vars=v; expr=e; } }
+  | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x} }
 
 expressions:
-  | x=terminals; { NxnAst.TerminalExpr {value=x} }
-  | i=id; LPAREN RPAREN { NxnAst.InvokeExpr {value=i} }
+  | x=entities; { Ast.EntityExpr {value=x} }
+  | x=terminals; { Ast.TerminalExpr {value=x} }
+  | i=id; LPAREN RPAREN { Ast.InvokeExpr {value=i} }
 
 terminals:
-  | x=INTVAL; { NxnAst.IntVal {value=x} }
-  | x=id; { NxnAst.IdVal {value=x} }
+  | x=INTVAL; { Ast.IntVal {value=x} }
+  | x=id; { Ast.IdVal {value=x} }
 
 vars:
-  | { [NxnAst.NoneVar] }
+  | { [Ast.NoneVar] }
   | v1=var; { [v1] }
   | v1=var; COMMA v2=vars; { v1 :: v2 }
 
 var:
-  | s=state; i=id; t=typedec; { NxnAst.Var {id=i; state=s; type'=t;} }
+  | s=state; i=id; t=typedec; { Ast.Var {id=i; state=s; type'=t;} }
 
 state:
-  | { NxnAst.ConstantState }
-  | CON { NxnAst.ConstantState }
-  | MUT { NxnAst.MutableState }
-  | VAR { NxnAst.VariableState }
+  | { Ast.ImmutableState }
+  | CON { Ast.ImmutableState }
+  | MUT { Ast.MutableState }
+  | SET { Ast.AssignState }
 
 typedec:
   | { None }
-  | COLON t=types; { Some(t) }
+  | COLON? t=types; { Some(t) }
+
+return_types:
+  | { Ast.UnitType }
+  | t=types; { t }
 
 types:
-  | { NxnAst.UnitType }
-  | LPAREN RPAREN { NxnAst.UnitType }
-  | INT { NxnAst.IntType }
+  | LPAREN RPAREN { Ast.UnitType }
+  | INT { Ast.IntType }
 
 id:
-  | loc=locate; i=IDVAL; { NxnAst.Id {value=i; loc=loc} }
+  | loc=locate; i=IDVAL; { Ast.Id {value=i; loc=loc} }
 
 let locate == {
   let startpos: Lexing.position = $startpos in
   let lnum = startpos.pos_lnum in
   let cnum = startpos.pos_cnum - startpos.pos_bol + 2 in
-  let loc = NxnAst.Loc{lnum=lnum; cnum=cnum} in
+  let loc = Ast.Loc{lnum=lnum; cnum=cnum} in
   loc
 }
 
@@ -96,6 +105,6 @@ let locate_node(node) == data=node; {
   let startpos: Lexing.position = $startpos in
   let lnum = startpos.pos_lnum in
   let cnum = startpos.pos_cnum - startpos.pos_bol + 2 in
-  let loc = NxnAst.Loc{lnum=lnum; cnum=cnum} in
+  let loc = Ast.Loc{lnum=lnum; cnum=cnum} in
   (data, loc)
 }

@@ -29,6 +29,7 @@ CMakeLists.txt.user
 *.o
 *.mod
 *.opam
+*.bc
 
 # files created by rust
 Cargo.lock

@@ -12,4 +12,4 @@
 (library
  (name nxn)
  (preprocess
-  (pps ppx_deriving.show)))
+  (pps ppx_deriving.show ppx_deriving.map ppx_deriving.fold ppx_deriving.iter visitors.ppx)))
