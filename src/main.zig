@@ -1,11 +1,10 @@
 const std = @import("std");
 
 const lib = @import("nxn_lib");
-const ignore = lib.ignore;
+const ignore = lib.lib.ignore;
 
 fn dev(allocator: std.mem.Allocator) !void {
-    ignore(.{allocator});
-    lib.shutdown();
+    try lib.compile(allocator, "src/x.nxn");
 }
 
 pub fn main() !void {
@@ -16,6 +15,6 @@ pub fn main() !void {
 
     const leaked = gpa.detectLeaks();
     if (leaked) {
-        std.debug.print("Has memory leaks: {any}\n", .{leaked});
+        std.debug.print("Has memory leaks!\n", .{});
     }
 }
