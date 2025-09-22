@@ -22,4 +22,14 @@ pub fn compile(allocator: std.mem.Allocator, file: []const u8) !void {
         break :x tokens;
     };
     defer tokens.deinit();
+
+    const ast = x: {
+        var parser = lib.parser.Parser.init(allocator, code, tokens.array.items);
+        errdefer parser.deinit();
+
+        try parser.parseFile();
+
+        break :x 0;
+    };
+    lib.ignore(.{ast});
 }
