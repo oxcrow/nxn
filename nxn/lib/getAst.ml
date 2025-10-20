@@ -3,7 +3,13 @@ module Id = struct
   let loc x = match x with Ast.Id y -> y.loc
 end
 
+module Type = struct end
+
 module Loc = struct
   let line_num x = match x with Ast.Loc y -> y.lnum
   let column_num x = match x with Ast.Loc y -> y.cnum
+end
+
+module Stmt = struct
+  let vars x = match x with Ast.LetStmt y -> y.vars
 end

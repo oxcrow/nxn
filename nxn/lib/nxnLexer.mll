@@ -15,6 +15,8 @@ rule token = parse
   | integer as lexeme { NxnParser.INTVAL(int_of_string lexeme) }
 
   | "fn" { NxnParser.FN }
+  | "struct" { NxnParser.STRUCT }
+
   | "let" { NxnParser.LET }
   | "con" { NxnParser.CON }
   | "mut" { NxnParser.MUT }

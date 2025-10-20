@@ -2,6 +2,8 @@
 %token <string> IDVAL
 
 %token FN
+%token STRUCT
+
 %token LET
 %token CON
 %token MUT
@@ -42,11 +44,11 @@
 %%
 
 file:
-  | EOF { Ast.File [] }
-  | e = nonempty_list(entities) EOF {Ast.File (e)}
+  | EOF { Ast.File { entities = [] } }
+  | e = nonempty_list(entities) EOF {Ast.File { entities = e }}
 
 entities:
-  | FN i=option(id); LPAREN RPAREN t=return_types; b=blocks; { Ast.Function {id=i; type'=t; block=b;} }
+  | FN i=id; LPAREN RPAREN t=return_types; b=blocks; { Ast.Function {id=i; type'=t; block=b;} }
 
 blocks:
   | LBRACE s=list(statements); RBRACE { Ast.Block {stmts=s} }
@@ -56,13 +58,16 @@ statements:
   | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x} }
 
 expressions:
-  | x=entities; { Ast.EntityExpr {value=x} }
-  | x=terminals; { Ast.TerminalExpr {value=x} }
-  | i=id; LPAREN RPAREN { Ast.InvokeExpr {value=i} }
+  | x=entities; { Ast.EntityExpr { value=x; type'=Ast.NoneType } }
+  | x=terminals; { Ast.TerminalExpr { value=x; type'=Ast.NoneType } }
+  | i=id; LPAREN RPAREN { Ast.InvokeExpr { value=i; type'=Ast.NoneType } }
+  | LPAREN x=expressions; RPAREN { x }
 
 terminals:
+  | LPAREN RPAREN { Ast.UnitVal }
   | x=INTVAL; { Ast.IntVal {value=x} }
   | x=id; { Ast.IdVal {value=x} }
+  | DOT LBRACE x=separated_list(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
 
 vars:
   | { [Ast.NoneVar] }
@@ -79,8 +84,8 @@ state:
   | SET { Ast.AssignState }
 
 typedec:
-  | { None }
-  | COLON? t=types; { Some(t) }
+  | { NoneType }
+  | COLON? t=types; { t }
 
 return_types:
   | { Ast.UnitType }
@@ -89,6 +94,8 @@ return_types:
 types:
   | LPAREN RPAREN { Ast.UnitType }
   | INT { Ast.IntType }
+  | PLUS LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
+  | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
 
 id:
   | loc=locate; i=IDVAL; { Ast.Id {value=i; loc=loc} }

@@ -3,6 +3,7 @@ open Utils.String
 module Failure = struct
   let todo loc x = failwith @@ "Not yet implemented: " ^ x ^ sp ^ paren loc
   let never loc x = failwith @@ "Unreachable code executed: " ^ x ^ sp ^ paren loc
+  let error loc x = failwith @@ "Error: " ^ x ^ sp ^ paren loc
 end
 
 module Unwrap = struct
