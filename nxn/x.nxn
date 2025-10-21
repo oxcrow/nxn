@@ -1,8 +1,31 @@
 fn main() int {
-    let x, y = zero();
-    return x;
+    let mut x = factorial(1);
+    let mut y = add(0, 2);
+    let z = swap(*x, *y);
+    return 0;
 }
 
-fn zero() +{int, ()} {
-    return .{0, ()};
+fn add(x: int, y: int) int {
+    return x + y;
+}
+
+fn factorial(n: int) int {
+    if n == 0 {
+        return 1;
+    }
+    return n * (n - 1);
+}
+
+fn swap(x: &mut/int/, y: &mut/int/) {
+    let z = ^x;
+    ^x = ^y;
+    ^y = z;
+}
+
+fn largest(x: &/int/a, y: &/int/a) &/int/a {
+    if x +>= y {
+        return x;
+    } else {
+        return y;
+    }
 }

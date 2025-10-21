@@ -60,7 +60,7 @@ let infer ast =
       let counts = List.map (fun (id, _) -> count id 0 records) records in
       (* We should report which identifier has multiple ocurrances *)
       List.iter
-        (fun n -> if n > 1 then never loc "Multiple occurances of identifier.")
+        (fun n -> if n > 1 then never loc "Multiple occurances of stupid identifier.")
         counts;
       records
     in
@@ -94,27 +94,64 @@ let infer ast =
       match expr with
       | Ast.TerminalExpr term -> (
           match term.value with
+          | Ast.UndefinedVal -> Ast.NoneType
           | Ast.UnitVal -> Ast.UnitType
           | Ast.IntVal _ -> Ast.IntType
           | Ast.FloatVal _ -> Ast.FloatType
-          | Ast.IdVal id ->
-              let id = GetAst.Id.value id.value in
+          | Ast.IdVal o ->
+              let id = GetAst.Id.value o.value in
               let type' =
                 match GetEnv.File.var_type id env with
                 | Some type' -> type'
                 | None -> error loc (quote id ^ " does not exist in environment.")
               in
               type'
-          | Ast.StructVal t ->
-              let types = List.map (infer_expr_type env) t.value in
+          | Ast.StructVal o ->
+              let types = List.map (infer_expr_type env) o.value in
               let type' = Ast.StructType { types } in
               type')
-      | Ast.InvokeExpr invoke ->
-          let id = GetAst.Id.value invoke.value in
-          let type' =
+      | Ast.InvokeExpr o ->
+          let id = GetAst.Id.value o.value in
+          let type', argtypes =
             match GetEnv.File.function_type id env with
-            | Some type' -> type'
+            | Some type' -> (
+                match type' with
+                | Ast.FunctionType t -> (t.type', t.args)
+                | _ -> never loc "")
             | None -> error loc (quote id ^ " does not exist in environment.")
+          in
+          (* Validate that the function argument types match *)
+          let _ =
+            if
+              List.map (fun arg -> infer_expr_type env arg) o.args
+              <> List.map
+                   (fun argtype ->
+                     match argtype with
+                     | Ast.ConRefType t -> Ast.ConRefType { life = None; types = t.types }
+                     | Ast.MutRefType t -> Ast.MutRefType { life = None; types = t.types }
+                     | _ -> argtype)
+                   argtypes
+            then never loc "Function argument types don't match"
+          in
+          type'
+      | Ast.BinOpExpr o ->
+          (* BUG: Binary expression tests fail in cases like if n == 0 {}
+             because n is of type IdVal, and 0 is IntVal, thus their types don't match.
+             To fix this we need to type infer unary/binary expressions without errors. *)
+          let ltype = infer_expr_type env o.lvalue in
+          let rtype = infer_expr_type env o.rvalue in
+          let type' =
+            if ltype = rtype then ltype else error loc "Binary operator types mismatch."
+          in
+          type'
+      | Ast.UnOpExpr o ->
+          let type' = infer_expr_type env o.value in
+          let type' =
+            match o.op with
+            | Ast.ConRefOp -> Ast.ConRefType { life = None; types = type' }
+            | Ast.MutRefOp -> Ast.MutRefType { life = None; types = type' }
+            | Ast.DerefOp -> type'
+            | _ -> todo loc "Infer unary expression type"
           in
           type'
     in
@@ -126,6 +163,10 @@ let infer ast =
       match expr with
       | Ast.TerminalExpr term -> (
           match term.value with
+          | Ast.UndefinedVal ->
+              let type' = infer_expr_type env expr in
+              let expr = SetAst.Expr.with_type expr type' in
+              (type', expr)
           | Ast.UnitVal ->
               let type' = infer_expr_type env expr in
               let expr = SetAst.Expr.with_type expr type' in
@@ -142,15 +183,38 @@ let infer ast =
               let type' = infer_expr_type env expr in
               let expr = SetAst.Expr.with_type expr type' in
               (type', expr)
-          | Ast.StructVal e ->
-              let result = List.map (infer_expr env) e.value in
+          | Ast.StructVal o ->
+              let result = List.map (infer_expr env) o.value in
               let types = List.map first result in
               let exprs = List.map second result in
               let value = Ast.StructVal { value = exprs } in
               let type' = Ast.StructType { types } in
               let expr = Ast.TerminalExpr { value; type' } in
               (type', expr))
-      | Ast.InvokeExpr _ ->
+      | Ast.InvokeExpr o ->
+          let type' = infer_expr_type env expr in
+          let _, args = List.map (infer_expr env) o.args |> List.split in
+          let expr = SetAst.Expr.with_args expr args in
+          let expr = SetAst.Expr.with_type expr type' in
+          (type', expr)
+      | Ast.BinOpExpr o ->
+          let expr =
+            Ast.BinOpExpr
+              {
+                lvalue = second (infer_expr env o.lvalue);
+                op = o.op;
+                rvalue = second (infer_expr env o.rvalue);
+                type' = o.type';
+              }
+          in
+          let type' = infer_expr_type env expr in
+          let expr = SetAst.Expr.with_type expr type' in
+          (type', expr)
+      | Ast.UnOpExpr o ->
+          let expr =
+            Ast.UnOpExpr
+              { value = second (infer_expr env o.value); op = o.op; type' = o.type' }
+          in
           let type' = infer_expr_type env expr in
           let expr = SetAst.Expr.with_type expr type' in
           (type', expr)
@@ -174,7 +238,7 @@ let infer ast =
     vars
   in
 
-  let infer_stmt env stmt =
+  let rec infer_stmt env stmt =
     match stmt with
     | Ast.LetStmt s ->
         let type', expr = infer_expr env s.expr in
@@ -183,14 +247,25 @@ let infer ast =
         let stmt = SetAst.Stmt.with_vars stmt vars in
         let env = extend_env env (GetAst.Stmt.vars stmt) in
         (env, stmt)
+    | Ast.SetStmt s ->
+        (* TODO: Implement set statement *)
+        (env, stmt)
     | Ast.ReturnStmt s ->
         let _, expr = infer_expr env s.expr in
         let stmt = SetAst.Stmt.with_expr stmt expr in
         (env, stmt)
+    | Ast.IfStmt s ->
+        (* TODO: Implement if statement *)
+        (env, stmt)
+    | Ast.ElseIfStmt s ->
+        (* TODO: Implement else if statement *)
+        (env, stmt)
+    | Ast.ElseStmt s ->
+        (* TODO: Implement else statement *)
+        (env, stmt)
     | _ -> todo loc "Infer statement."
-  in
-
-  let infer_stmts env stmts =
+  (* Infer list of statements *)
+  and infer_stmts env stmts =
     let rec aux env stmts acc =
       match stmts with
       | [] -> List.rev acc
@@ -199,18 +274,18 @@ let infer ast =
           aux env tl (hd :: acc)
     in
     aux env stmts []
-  in
-
-  let infer_entity env enty =
+  (* Infer entities *)
+  and infer_entity env enty =
     match enty with
     | Ast.Function f ->
         let block =
           match f.block with
           | Ast.Block b ->
+              let env = extend_env env f.args in
               let stmts = infer_stmts env b.stmts in
               Ast.Block { stmts }
         in
-        Ast.Function { id = f.id; type' = f.type'; block }
+        Ast.Function { id = f.id; args = f.args; type' = f.type'; block }
     | _ -> todo loc "Infer entity." unit
   in
 
@@ -223,12 +298,17 @@ let infer ast =
   tst
 ;;
 
+(** Compile a section of code *)
+let compile code =
+  let ast = parse code in
+  let tst = infer ast in
+  unit
+;;
+
 (** Execution starts here *)
 let main =
   let code = File.read_file_content "x.nxn" in
-  let ast = parse code in
-  let tst = infer ast in
-
+  compile code;
   write "-*-";
   unit
 ;;
