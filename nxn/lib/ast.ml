@@ -16,6 +16,11 @@ and expressions =
   | EntityExpr of { value : entities; type' : types }
   | TerminalExpr of { value : terminals; type' : types }
   | InvokeExpr of { value : id; type' : types }
+  | BinOpExpr of { lvalue : expressions; op : binop; rvalue : expressions; type' : types }
+  | UnOpExpr of { value : expressions; op : unop; type' : types }
+
+and binop = AddOp | SubOp | MulOp | DivOp | RemOp | ExpOp | NoneOp
+and unop = PosOp | NegOp | NotOp | TryOp
 
 and terminals =
   | UnitVal
@@ -34,6 +39,6 @@ and types =
   | StructType of { types : types list }
   | NoneType
 
-and state = ImmutableState | MutableState | AssignState
+and state = LetState | MutState | SetState
 and id = Id of { value : string; loc : loc }
 and loc = Loc of { lnum : int; cnum : int }

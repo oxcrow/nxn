@@ -1,7 +1,7 @@
 let whitespace = [' ''\t']
 let newline = ['\n']
 let digit = ['0'-'9']
-let integer = ['-''+']? digit+
+let integer = digit+
 let id = ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_']*
 let comment = "//"[^'\n']*newline
 
@@ -24,6 +24,7 @@ rule token = parse
 
   | "int" { NxnParser.INT }
 
+  | "@" { NxnParser.AT }
   | ";" { NxnParser.SEMICOLON }
   | ":" { NxnParser.COLON }
   | "," { NxnParser.COMMA }

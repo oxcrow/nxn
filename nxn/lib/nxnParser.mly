@@ -11,6 +11,7 @@
 
 %token INT
 
+%token AT
 %token SEMICOLON
 %token COLON
 %token COMMA
@@ -34,9 +35,10 @@
 
 (* Highest priority at the bottom *)
 (* Lowest priority at the top *)
-%right EQUAL
 %left PLUS MINUS
 %left STAR SLASH
+%nonassoc UPLUS UMINUS
+%nonassoc NOT
 
 %start file
 %type  <Ast.file> file
@@ -54,34 +56,50 @@ blocks:
   | LBRACE s=list(statements); RBRACE { Ast.Block {stmts=s} }
 
 statements:
-  | LET v=vars; EQUAL e=expressions; SEMICOLON { Ast.LetStmt { vars=v; expr=e; } }
+  | LET v=seplist(COMMA,var); EQUAL e=expressions; SEMICOLON { Ast.LetStmt {vars=v; expr=e;} }
   | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x} }
 
 expressions:
-  | x=entities; { Ast.EntityExpr { value=x; type'=Ast.NoneType } }
-  | x=terminals; { Ast.TerminalExpr { value=x; type'=Ast.NoneType } }
-  | i=id; LPAREN RPAREN { Ast.InvokeExpr { value=i; type'=Ast.NoneType } }
+  | x=postfix; { x }
+  | x=binops; { x }
+  | x=unops; { x }
+
+postfix:
+  | x=exprs; { x }
+  | x=exprs; QUESTION { Ast.UnOpExpr {value=x; op=Ast.TryOp; type'=Ast.NoneType} }
+
+binops:
+  | x=expressions; PLUS  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.AddOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; MINUS y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.SubOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; STAR  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.MulOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; SLASH y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.DivOp; rvalue=y; type'=Ast.NoneType} }
+
+unops:
+  | PLUS x=expressions; %prec UPLUS { Ast.UnOpExpr {value=x; op=Ast.PosOp; type'=Ast.NoneType} }
+  | MINUS x=expressions; %prec UMINUS { Ast.UnOpExpr {value=x; op=Ast.NegOp; type'=Ast.NoneType} }
+  | EXCLAMATION x=expressions; %prec NOT { Ast.UnOpExpr {value=x; op=Ast.NotOp; type'=Ast.NoneType} }
+
+exprs:
   | LPAREN x=expressions; RPAREN { x }
+  | x=entities; { Ast.EntityExpr {value=x; type'=Ast.NoneType} }
+  | x=terminals; { Ast.TerminalExpr {value=x; type'=Ast.NoneType} }
+  | i=id; LPAREN RPAREN { Ast.InvokeExpr {value=i; type'=Ast.NoneType} }
 
 terminals:
   | LPAREN RPAREN { Ast.UnitVal }
   | x=INTVAL; { Ast.IntVal {value=x} }
   | x=id; { Ast.IdVal {value=x} }
   | DOT LBRACE x=separated_list(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
-
-vars:
-  | { [Ast.NoneVar] }
-  | v1=var; { [v1] }
-  | v1=var; COMMA v2=vars; { v1 :: v2 }
+  | PLUS LBRACE x=seplist(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
 
 var:
   | s=state; i=id; t=typedec; { Ast.Var {id=i; state=s; type'=t;} }
 
 state:
-  | { Ast.ImmutableState }
-  | CON { Ast.ImmutableState }
-  | MUT { Ast.MutableState }
-  | SET { Ast.AssignState }
+  | { Ast.LetState }
+  | CON { Ast.LetState }
+  | MUT { Ast.MutState }
+  | SET { Ast.SetState }
 
 typedec:
   | { NoneType }
@@ -94,7 +112,7 @@ return_types:
 types:
   | LPAREN RPAREN { Ast.UnitType }
   | INT { Ast.IntType }
-  | PLUS LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
+  | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
   | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
 
 id:
@@ -115,3 +133,8 @@ let locate_node(node) == data=node; {
   let loc = Ast.Loc{lnum=lnum; cnum=cnum} in
   (data, loc)
 }
+
+seplist(SEP, NODE):
+  | { [] }
+  | x=NODE; { [x] }
+  | x=NODE; SEP y=seplist(SEP,NODE); { x::y }

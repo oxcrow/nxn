@@ -97,25 +97,35 @@ let infer ast =
           | Ast.UnitVal -> Ast.UnitType
           | Ast.IntVal _ -> Ast.IntType
           | Ast.FloatVal _ -> Ast.FloatType
-          | Ast.IdVal id ->
-              let id = GetAst.Id.value id.value in
+          | Ast.IdVal o ->
+              let id = GetAst.Id.value o.value in
               let type' =
                 match GetEnv.File.var_type id env with
                 | Some type' -> type'
                 | None -> error loc (quote id ^ " does not exist in environment.")
               in
               type'
-          | Ast.StructVal t ->
-              let types = List.map (infer_expr_type env) t.value in
+          | Ast.StructVal o ->
+              let types = List.map (infer_expr_type env) o.value in
               let type' = Ast.StructType { types } in
               type')
-      | Ast.InvokeExpr invoke ->
-          let id = GetAst.Id.value invoke.value in
+      | Ast.InvokeExpr o ->
+          let id = GetAst.Id.value o.value in
           let type' =
             match GetEnv.File.function_type id env with
             | Some type' -> type'
             | None -> error loc (quote id ^ " does not exist in environment.")
           in
+          type'
+      | Ast.BinOpExpr o ->
+          let ltype = infer_expr_type env o.lvalue in
+          let rtype = infer_expr_type env o.rvalue in
+          let type' =
+            if ltype = rtype then ltype else error loc "Binary operator types mismatch."
+          in
+          type'
+      | Ast.UnOpExpr o ->
+          let type' = infer_expr_type env o.value in
           type'
     in
     type'
@@ -142,8 +152,8 @@ let infer ast =
               let type' = infer_expr_type env expr in
               let expr = SetAst.Expr.with_type expr type' in
               (type', expr)
-          | Ast.StructVal e ->
-              let result = List.map (infer_expr env) e.value in
+          | Ast.StructVal o ->
+              let result = List.map (infer_expr env) o.value in
               let types = List.map first result in
               let exprs = List.map second result in
               let value = Ast.StructVal { value = exprs } in
@@ -151,6 +161,27 @@ let infer ast =
               let expr = Ast.TerminalExpr { value; type' } in
               (type', expr))
       | Ast.InvokeExpr _ ->
+          let type' = infer_expr_type env expr in
+          let expr = SetAst.Expr.with_type expr type' in
+          (type', expr)
+      | Ast.BinOpExpr o ->
+          let expr =
+            Ast.BinOpExpr
+              {
+                lvalue = second (infer_expr env o.lvalue);
+                op = o.op;
+                rvalue = second (infer_expr env o.rvalue);
+                type' = o.type';
+              }
+          in
+          let type' = infer_expr_type env expr in
+          let expr = SetAst.Expr.with_type expr type' in
+          (type', expr)
+      | Ast.UnOpExpr o ->
+          let expr =
+            Ast.UnOpExpr
+              { value = second (infer_expr env o.value); op = o.op; type' = o.type' }
+          in
           let type' = infer_expr_type env expr in
           let expr = SetAst.Expr.with_type expr type' in
           (type', expr)
@@ -229,6 +260,7 @@ let main =
   let ast = parse code in
   let tst = infer ast in
 
+  printast tst;
   write "-*-";
   unit
 ;;

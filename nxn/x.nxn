@@ -1,8 +1,4 @@
 fn main() int {
-    let x, y = zero();
+    let x = 0 +1;
     return x;
-}
-
-fn zero() +{int, ()} {
-    return .{0, ()};
 }

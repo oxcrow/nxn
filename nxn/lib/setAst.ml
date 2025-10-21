@@ -20,5 +20,8 @@ module Expr = struct
     match x with
     | Ast.TerminalExpr y -> Ast.TerminalExpr { value = y.value; type' = t }
     | Ast.InvokeExpr y -> Ast.InvokeExpr { value = y.value; type' = t }
+    | Ast.BinOpExpr y ->
+        Ast.BinOpExpr { lvalue = y.lvalue; op = y.op; rvalue = y.rvalue; type' = t }
+    | Ast.UnOpExpr y -> Ast.UnOpExpr { value = y.value; op = y.op; type' = t }
   ;;
 end
