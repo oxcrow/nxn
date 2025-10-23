@@ -1,4 +1,5 @@
 %token <int> INTVAL
+%token <float> FLTVAL
 %token <string> IDVAL
 
 %token FN
@@ -10,6 +11,7 @@
 %token SET
 
 %token INT
+%token FLT
 
 %token AT
 %token SEMICOLON
@@ -88,6 +90,7 @@ exprs:
 terminals:
   | LPAREN RPAREN { Ast.UnitVal }
   | x=INTVAL; { Ast.IntVal {value=x} }
+  | x=FLTVAL; { Ast.FltVal {value=x} }
   | x=id; { Ast.IdVal {value=x} }
   | DOT LBRACE x=separated_list(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
   | PLUS LBRACE x=seplist(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
@@ -112,6 +115,7 @@ return_types:
 types:
   | LPAREN RPAREN { Ast.UnitType }
   | INT { Ast.IntType }
+  | FLT { Ast.FltType }
   | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
   | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
 

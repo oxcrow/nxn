@@ -2,6 +2,7 @@ let whitespace = [' ''\t']
 let newline = ['\n']
 let digit = ['0'-'9']
 let integer = digit+
+let float = digit+(['.']digit+)?
 let id = ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_']*
 let comment = "//"[^'\n']*newline
 
@@ -13,6 +14,7 @@ rule token = parse
 
   (* Terminals *)
   | integer as lexeme { NxnParser.INTVAL(int_of_string lexeme) }
+  | float as lexeme { NxnParser.FLTVAL(float_of_string lexeme) }
 
   | "fn" { NxnParser.FN }
   | "struct" { NxnParser.STRUCT }
@@ -23,6 +25,7 @@ rule token = parse
   | "set" { NxnParser.SET }
 
   | "int" { NxnParser.INT }
+  | "flt" { NxnParser.FLT }
 
   | "@" { NxnParser.AT }
   | ";" { NxnParser.SEMICOLON }

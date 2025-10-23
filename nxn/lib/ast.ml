@@ -25,7 +25,7 @@ and unop = PosOp | NegOp | NotOp | TryOp
 and terminals =
   | UnitVal
   | IntVal of { value : int }
-  | FloatVal of { value : float }
+  | FltVal of { value : float }
   | IdVal of { value : id }
   | StructVal of { value : expressions list }
 
@@ -34,7 +34,7 @@ and vars = Var of { id : id; state : state; type' : types } | NoneVar
 and types =
   | UnitType
   | IntType
-  | FloatType
+  | FltType
   | DerivedType of { id : id }
   | StructType of { types : types list }
   | NoneType

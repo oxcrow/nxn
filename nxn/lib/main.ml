@@ -96,7 +96,7 @@ let infer ast =
           match term.value with
           | Ast.UnitVal -> Ast.UnitType
           | Ast.IntVal _ -> Ast.IntType
-          | Ast.FloatVal _ -> Ast.FloatType
+          | Ast.FltVal _ -> Ast.FltType
           | Ast.IdVal o ->
               let id = GetAst.Id.value o.value in
               let type' =
@@ -144,7 +144,7 @@ let infer ast =
               let type' = infer_expr_type env expr in
               let expr = SetAst.Expr.with_type expr type' in
               (type', expr)
-          | Ast.FloatVal _ ->
+          | Ast.FltVal _ ->
               let type' = infer_expr_type env expr in
               let expr = SetAst.Expr.with_type expr type' in
               (type', expr)
