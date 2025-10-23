@@ -39,6 +39,17 @@ and types =
   | StructType of { types : types list }
   | NoneType
 
+and traits =
+  | DefaultTrait
+  | DisplayTrait
+  | DebugTrait
+  | DerefTrait
+  | DropTrait
+  | CopyTrait
+  | CloneTrait
+  | SyncTrait
+  | SendTrait
+
 and state = LetState | MutState | SetState
 and id = Id of { value : string; loc : loc }
 and loc = Loc of { lnum : int; cnum : int }
