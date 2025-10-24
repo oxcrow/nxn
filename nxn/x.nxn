@@ -1,8 +1,5 @@
 fn main() int {
-    let x = zero();
-    return x;
-}
-
-fn zero() flt {
-    return 0.0;
+    let x, y = .{6, 3};
+    let z = x - y;
+    return z;
 }
