@@ -60,7 +60,7 @@ let infer ast =
       let counts = List.map (fun (id, _) -> count id 0 records) records in
       (* We should report which identifier has multiple ocurrances *)
       List.iter
-        (fun n -> if n > 1 then never loc "Multiple occurances of identifier.")
+        (fun n -> if n > 1 then never loc "Multiple occurances of stupid identifier.")
         counts;
       records
     in
@@ -254,13 +254,17 @@ let infer ast =
   tst
 ;;
 
+(** Compile a section of code *)
+let compile code =
+  let ast = parse code in
+  let tst = infer ast in
+  unit
+;;
+
 (** Execution starts here *)
 let main =
   let code = File.read_file_content "x.nxn" in
-  let ast = parse code in
-  let tst = infer ast in
-
-  printast tst;
+  compile code;
   write "-*-";
   unit
 ;;
