@@ -92,7 +92,7 @@ terminals:
   | x=INTVAL; { Ast.IntVal {value=x} }
   | x=FLTVAL; { Ast.FltVal {value=x} }
   | x=id; { Ast.IdVal {value=x} }
-  | DOT LBRACE x=separated_list(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
+  | DOT LBRACE x=seplist(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
   | PLUS LBRACE x=seplist(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
 
 var:
