@@ -11,6 +11,7 @@ and statements =
   | LetStmt of { vars : vars list; expr : expressions }
   | SetStmt of { vars : expressions list; expr : expressions }
   | ReturnStmt of { expr : expressions }
+  | InvokeStmt of { expr : expressions }
   | IfStmt of { expr : expressions }
   | ElseIfStmt of { expr : expressions }
   | ElseStmt of { expr : expressions }

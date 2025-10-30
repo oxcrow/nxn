@@ -266,6 +266,10 @@ let infer ast =
         let _, expr = infer_expr env s.expr in
         let stmt = SetAst.Stmt.with_expr stmt expr in
         (env, stmt)
+    | Ast.InvokeStmt s ->
+        let _, expr = infer_expr env s.expr in
+        let stmt = SetAst.Stmt.with_expr stmt expr in
+        (env, stmt)
     | Ast.IfStmt s ->
         (* TODO: Implement if statement *)
         (env, stmt)

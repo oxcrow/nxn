@@ -1,7 +1,7 @@
 fn main() int {
     let mut x = factorial(1);
     let mut y = add(0, 2);
-    let z = swap(*x, *y);
+    swap(*x, *y);
     return 0;
 }
 

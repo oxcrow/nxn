@@ -109,6 +109,7 @@ statements:
   | LET v=seplist(COMMA,vars); EQUAL e=expressions; SEMICOLON { Ast.LetStmt {vars=v; expr=e;} }
   | v=seplist(COMMA,expressions) EQUAL e=expressions; SEMICOLON { Ast.SetStmt {vars=v; expr=e;} }
   | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x} }
+  | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN SEMICOLON { Ast.InvokeStmt {expr=Ast.InvokeExpr{value=i; args=a; type'=Ast.NoneType}} }
   | x=ifstmts; { x }
 
 ifstmts:

@@ -6,6 +6,7 @@ module Stmt = struct
     match x with
     | Ast.LetStmt y -> Ast.LetStmt { vars = y.vars; expr = e }
     | Ast.ReturnStmt _ -> Ast.ReturnStmt { expr = e }
+    | Ast.InvokeStmt _ -> Ast.InvokeStmt { expr = e }
   ;;
 
   let with_vars x v =
