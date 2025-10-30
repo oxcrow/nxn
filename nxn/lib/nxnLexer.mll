@@ -54,10 +54,10 @@ rule token = parse
 
   | "==" { NxnParser.EQ }
   | "!=" { NxnParser.NE }
-  | "+<=" { NxnParser.LE }
-  | "+>=" { NxnParser.GE }
-  | "+<" { NxnParser.LT }
-  | "+>" { NxnParser.GT }
+  | "@<=" { NxnParser.LE }
+  | "@>=" { NxnParser.GE }
+  | "@<" { NxnParser.LT }
+  | "@>" { NxnParser.GT }
 
   | "@" { NxnParser.AT }
   | ";" { NxnParser.SEMICOLON }
