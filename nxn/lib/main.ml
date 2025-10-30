@@ -145,12 +145,15 @@ let infer ast =
           in
           type'
       | Ast.UnOpExpr o ->
-          let type' = infer_expr_type env o.value in
+          let value_type = infer_expr_type env o.value in
           let type' =
             match o.op with
-            | Ast.ConRefOp -> Ast.ConRefType { life = None; types = type' }
-            | Ast.MutRefOp -> Ast.MutRefType { life = None; types = type' }
-            | Ast.DerefOp -> type'
+            | Ast.PosOp -> value_type
+            | Ast.NegOp -> value_type
+            | Ast.NotOp -> value_type
+            | Ast.ConRefOp -> Ast.ConRefType { life = None; types = value_type }
+            | Ast.MutRefOp -> Ast.MutRefType { life = None; types = value_type }
+            | Ast.DerefOp -> value_type
             | _ -> todo loc "Infer unary expression type"
           in
           type'
