@@ -16,13 +16,13 @@ fn factorial(n: int) int {
     return n * (n - 1);
 }
 
-fn swap(x: &mut/int/, y: &mut/int/) {
+fn swap(x: &mut{int}, y: &mut{int}) {
     let z = ^x;
     ^x = ^y;
     ^y = z;
 }
 
-fn largest(x: &/int/a, y: &/int/a) &/int/a {
+fn largest(x: &{int,a}, y: &{int,a}) &{int,a} {
     if x +>= y {
         return x;
     } else {
