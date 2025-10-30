@@ -109,11 +109,17 @@ statements:
   | x=ifstmts; { x }
 
 ifstmts:
-  | IF c=expressions; b=blocks; o=option(elsestmts); { Ast.IfStmt {cond=c; block=b; other=o} }
-
+  | x=ifexprs; { Ast.IfStmt {expr=x} }
 elsestmts:
-  | ELSE IF c=expressions; b=blocks; o=option(elsestmts); { Ast.ElseIfStmt {cond=c; block=b; other=o} }
-  | ELSE b=blocks; { Ast.ElseStmt {block=b} }
+  | x=elseifexprs; { Ast.ElseIfStmt {expr=x} }
+  | x=elseexprs; { Ast.ElseStmt {expr=x} }
+
+ifexprs:
+  | IF c=expressions; b=blocks; o=option(elsestmts); { Ast.IfExpr{cond=c; block=b; other=o} }
+elseifexprs:
+  | ELSE IF c=expressions; b=blocks; o=option(elsestmts); { Ast.ElseIfExpr{cond=c; block=b; other=o} }
+elseexprs:
+  | ELSE b=blocks; { Ast.ElseExpr{block=b} }
 
 expressions:
   | x=postfix; { x }

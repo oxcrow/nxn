@@ -11,9 +11,9 @@ and statements =
   | LetStmt of { vars : vars list; expr : expressions }
   | SetStmt of { vars : expressions list; expr : expressions }
   | ReturnStmt of { expr : expressions }
-  | IfStmt of { cond : expressions; block : blocks; other : statements option }
-  | ElseIfStmt of { cond : expressions; block : blocks; other : statements option }
-  | ElseStmt of { block : blocks }
+  | IfStmt of { expr : expressions }
+  | ElseIfStmt of { expr : expressions }
+  | ElseStmt of { expr : expressions }
   | NoneStmt
 
 and expressions =
@@ -22,6 +22,9 @@ and expressions =
   | InvokeExpr of { value : id; args : expressions list; type' : types }
   | BinOpExpr of { lvalue : expressions; op : binop; rvalue : expressions; type' : types }
   | UnOpExpr of { value : expressions; op : unop; type' : types }
+  | IfExpr of { cond : expressions; block : blocks; other : statements option }
+  | ElseIfExpr of { cond : expressions; block : blocks; other : statements option }
+  | ElseExpr of { block : blocks }
 
 and binop =
   | AddOp
