@@ -28,6 +28,7 @@
 %token LOCAL
 
 %token TYPE
+%token BOOL
 %token INT
 %token FLOAT
 %token TRUE
@@ -96,7 +97,9 @@ entities:
     { Ast.Function {
           id=i;
           args=a;
-          type'=(Ast.FunctionType{args=(List.map (fun var -> match var with | Ast.Var v -> v.type') a); type'=t});
+          type'=(Ast.FunctionType{
+                     args=(List.map (fun var -> match var with | Ast.Var v -> v.type') a);
+                     type'=t});
           block=b;} }
 
 blocks:
@@ -113,15 +116,15 @@ ifstmts:
 elsestmts:
   | x=elseifexprs; { Ast.ElseIfStmt {expr=x} }
   | x=elseexprs; { Ast.ElseStmt {expr=x} }
-
 ifexprs:
-  | IF c=expressions; b=blocks; o=option(elsestmts); { Ast.IfExpr{cond=c; block=b; other=o} }
+  | IF c=conds; b=blocks; o=option(elsestmts); { Ast.IfExpr{cond=c; block=b; other=o; type'=Ast.NoneType} }
 elseifexprs:
-  | ELSE IF c=expressions; b=blocks; o=option(elsestmts); { Ast.ElseIfExpr{cond=c; block=b; other=o} }
+  | ELSE IF c=conds; b=blocks; o=option(elsestmts); { Ast.ElseIfExpr{cond=c; block=b; other=o; type'=Ast.NoneType} }
 elseexprs:
-  | ELSE b=blocks; { Ast.ElseExpr{block=b} }
+  | ELSE b=blocks; { Ast.ElseExpr{block=b; type'=Ast.NoneType} }
 
 expressions:
+  | LPAREN x=expressions; RPAREN { x }
   | x=postfix; { x }
   | x=binops; { x }
   | x=unops; { x }
@@ -135,12 +138,15 @@ binops:
   | x=expressions; MINUS y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.SubOp; rvalue=y; type'=Ast.NoneType} }
   | x=expressions; STAR  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.MulOp; rvalue=y; type'=Ast.NoneType} }
   | x=expressions; SLASH y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.DivOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; EQ    y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.EqOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; NE    y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.NeOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; LE    y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LeOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; GE    y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GeOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; LT    y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LtOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; GT    y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GtOp; rvalue=y; type'=Ast.NoneType} }
+  | x=conds; { x }
+
+conds:
+  | x=expressions; EQ y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.EqOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; NE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.NeOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; LE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LeOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; GE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GeOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; LT y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LtOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; GT y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GtOp; rvalue=y; type'=Ast.NoneType} }
 
 unops:
   | PLUS x=expressions; %prec UPLUS { Ast.UnOpExpr {value=x; op=Ast.PosOp; type'=Ast.NoneType} }
@@ -155,19 +161,23 @@ refs:
   | CARET x=expressions; %prec UDEREF { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType} }
 
 exprs:
-  | LPAREN x=expressions; RPAREN { x }
   | x=entities; { Ast.EntityExpr {value=x; type'=Ast.NoneType} }
   | x=terminals; { Ast.TerminalExpr {value=x; type'=Ast.NoneType} }
   | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN { Ast.InvokeExpr {value=i; args=a; type'=Ast.NoneType} }
+  | AT IF c=conds; b=blocks; o=option(elsestmts); { Ast.IfExpr{cond=c; block=b; other=o; type'=Ast.NoneType} }
 
 terminals:
   | UNDEFINED { Ast.UndefinedVal }
   | LPAREN RPAREN { Ast.UnitVal }
+  | x=bools;  { Ast.BoolVal {value=x} }
   | x=INTVAL; { Ast.IntVal {value=x} }
   | x=FLOATVAL; { Ast.FloatVal {value=x} }
   | x=id; { Ast.IdVal {value=x} }
   | DOT LBRACE x=seplist(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
-  | PLUS LBRACE x=seplist(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
+
+bools:
+  | TRUE { true }
+  | FALSE { false }
 
 vars:
   | s=state; i=id; t=typedec; { Ast.Var {id=i; state=s; type'=t;} }
@@ -188,6 +198,7 @@ return_types:
 
 types:
   | LPAREN RPAREN { Ast.UnitType }
+  | BOOL { Ast.BoolType }
   | INT { Ast.IntType }
   | FLOAT { Ast.FloatType }
   | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }

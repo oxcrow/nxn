@@ -221,6 +221,15 @@ let infer ast =
           let type' = infer_expr_type env expr in
           let expr = SetAst.Expr.with_type expr type' in
           (type', expr)
+      | Ast.IfExpr o ->
+          (* TODO *)
+          (Ast.NoneType, expr)
+      | Ast.ElseIfExpr o ->
+          (* TODO *)
+          (Ast.NoneType, expr)
+      | Ast.ElseExpr o ->
+          (* TODO *)
+          (Ast.NoneType, expr)
     in
     (type', expr)
   in

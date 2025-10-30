@@ -44,6 +44,7 @@ rule token = parse
   | "loc" { NxnParser.LOCAL }
 
   | "type" { NxnParser.TYPE }
+  | "bool" { NxnParser.BOOL }
   | "int" { NxnParser.INT }
   | "float" { NxnParser.FLOAT }
   | "true" { NxnParser.TRUE }
@@ -52,7 +53,7 @@ rule token = parse
   | "as" { NxnParser.AS }
 
   | "==" { NxnParser.EQ }
-  | "!=" { NxnParser.EQ }
+  | "!=" { NxnParser.NE }
   | "+<=" { NxnParser.LE }
   | "+>=" { NxnParser.GE }
   | "+<" { NxnParser.LT }

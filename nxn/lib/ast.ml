@@ -22,9 +22,19 @@ and expressions =
   | InvokeExpr of { value : id; args : expressions list; type' : types }
   | BinOpExpr of { lvalue : expressions; op : binop; rvalue : expressions; type' : types }
   | UnOpExpr of { value : expressions; op : unop; type' : types }
-  | IfExpr of { cond : expressions; block : blocks; other : statements option }
-  | ElseIfExpr of { cond : expressions; block : blocks; other : statements option }
-  | ElseExpr of { block : blocks }
+  | IfExpr of {
+      cond : expressions;
+      block : blocks;
+      other : statements option;
+      type' : types;
+    }
+  | ElseIfExpr of {
+      cond : expressions;
+      block : blocks;
+      other : statements option;
+      type' : types;
+    }
+  | ElseExpr of { block : blocks; type' : types }
 
 and binop =
   | AddOp
@@ -46,6 +56,7 @@ and unop = PosOp | NegOp | NotOp | TryOp | ConRefOp | MutRefOp | DerefOp
 and terminals =
   | UndefinedVal
   | UnitVal
+  | BoolVal of { value : bool }
   | IntVal of { value : int }
   | FloatVal of { value : float }
   | IdVal of { value : id }
@@ -55,6 +66,7 @@ and vars = Var of { id : id; state : state; type' : types } | NoneVar
 
 and types =
   | UnitType
+  | BoolType
   | IntType
   | FloatType
   | DerivedType of { id : id }

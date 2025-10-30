@@ -29,3 +29,14 @@ fn largest(x: &{int,a}, y: &{int,a}) &{int,a} {
         return y;
     }
 }
+
+fn trueOrFalse(x: int) bool {
+    let y = @if x == 0 {
+        // set false;
+    } else if x == 1 {
+        // set true;
+    } else {
+        // set true;
+    };
+    return y;
+}
