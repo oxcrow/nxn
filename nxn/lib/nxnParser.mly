@@ -74,13 +74,13 @@
 %token EOF
 
 (* Lowest priority at the top *)
+%nonassoc LE GE LT GT
+%nonassoc EQ NE
+%nonassoc NOT
 %left PLUS MINUS
 %left STAR SLASH
 %nonassoc UPLUS UMINUS
 %nonassoc UCONREF UMUTREF UDEREF
-%nonassoc LE GE LT GT
-%nonassoc EQ NE
-%nonassoc NOT
 (* Highest priority at the bottom *)
 
 %start file
