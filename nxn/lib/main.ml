@@ -154,6 +154,7 @@ let infer ast =
             | Ast.ConRefOp -> Ast.ConRefType { life = None; types = value_type }
             | Ast.MutRefOp -> Ast.MutRefType { life = None; types = value_type }
             | Ast.DerefOp -> value_type
+            | Ast.TryOp -> value_type
             | _ -> todo loc "Infer unary expression type"
           in
           type'

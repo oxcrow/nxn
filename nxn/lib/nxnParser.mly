@@ -110,7 +110,7 @@ statements:
   | SET x=expressions; SEMICOLON { Ast.SetStmt {label=None; expr=x} }
   | v=seplist(COMMA,expressions) EQUAL e=expressions; SEMICOLON { Ast.AssignStmt {vars=v; expr=e;} }
   | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x} }
-  | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN SEMICOLON { Ast.InvokeStmt {expr=Ast.InvokeExpr{value=i; args=a; type'=Ast.NoneType}} }
+  | x=expressions; SEMICOLON { Ast.InvokeStmt {expr=x} }
   | x=ifstmts; { x }
 
 ifstmts:
