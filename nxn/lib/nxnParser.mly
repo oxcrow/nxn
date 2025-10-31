@@ -115,15 +115,17 @@ statements:
 
 ifstmts:
   | x=ifexprs; { Ast.IfStmt {expr=x} }
-elsestmts:
-  | x=elseifexprs; { Ast.ElseIfStmt {expr=x} }
-  | x=elseexprs; { Ast.ElseStmt {expr=x} }
+
 ifexprs:
-  | IF c=conds; b=blocks; o=option(elsestmts); { Ast.IfExpr{cond=c; block=b; other=o; type'=Ast.NoneType} }
+  | IF c=conds; b=blocks; o=option(elsebranch); { Ast.IfExpr {cond=c; block=b; other=o; type'=Ast.NoneType} }
 elseifexprs:
-  | ELSE IF c=conds; b=blocks; o=option(elsestmts); { Ast.ElseIfExpr{cond=c; block=b; other=o; type'=Ast.NoneType} }
+  | ELSE IF c=conds; b=blocks; o=option(elsebranch); { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType} }
 elseexprs:
-  | ELSE b=blocks; { Ast.ElseExpr{block=b; type'=Ast.NoneType} }
+  | ELSE b=blocks; { Ast.ElseExpr {block=b; type'=Ast.NoneType} }
+
+elsebranch:
+  | x=elseifexprs; { x }
+  | x=elseexprs; { x }
 
 expressions:
   | LPAREN x=expressions; RPAREN { x }
@@ -166,7 +168,7 @@ exprs:
   | x=entities; { Ast.EntityExpr {value=x; type'=Ast.NoneType} }
   | x=terminals; { Ast.TerminalExpr {value=x; type'=Ast.NoneType} }
   | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN { Ast.InvokeExpr {value=i; args=a; type'=Ast.NoneType} }
-  | AT IF c=conds; b=blocks; o=option(elsestmts); { Ast.IfExpr{cond=c; block=b; other=o; type'=Ast.NoneType} }
+  | AT IF c=conds; b=blocks; o=option(elsebranch); { Ast.IfExpr{cond=c; block=b; other=o; type'=Ast.NoneType} }
 
 terminals:
   | UNDEFINED { Ast.UndefinedVal }

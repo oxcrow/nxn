@@ -4,6 +4,7 @@ module Failure = struct
   let todo loc x = failwith @@ "Not yet implemented: " ^ x ^ sp ^ paren loc
   let never loc x = failwith @@ "Unreachable code executed: " ^ x ^ sp ^ paren loc
   let error loc x = failwith @@ "Error: " ^ x ^ sp ^ paren loc
+  let ensure loc x = if x = true then () else error loc "Assert failed."
 end
 
 module Unwrap = struct

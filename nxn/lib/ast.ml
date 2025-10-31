@@ -14,8 +14,6 @@ and statements =
   | ReturnStmt of { expr : expressions }
   | InvokeStmt of { expr : expressions }
   | IfStmt of { expr : expressions }
-  | ElseIfStmt of { expr : expressions }
-  | ElseStmt of { expr : expressions }
   | NoneStmt
 
 and expressions =
@@ -27,13 +25,13 @@ and expressions =
   | IfExpr of {
       cond : expressions;
       block : blocks;
-      other : statements option;
+      other : expressions option;
       type' : types;
     }
   | ElseIfExpr of {
       cond : expressions;
       block : blocks;
-      other : statements option;
+      other : expressions option;
       type' : types;
     }
   | ElseExpr of { block : blocks; type' : types }

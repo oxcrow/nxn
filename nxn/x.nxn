@@ -1,33 +1,6 @@
 fn main() int {
-    let mut x = factorial(1);
-    let mut y = add(0, 2);
-    swap(*x, *y);
+    let x = trueOrFalse(9);
     return 0;
-}
-
-fn add(x: int, y: int) int {
-    return x + y;
-}
-
-fn factorial(n: int) int {
-    if n == 0 {
-        return 1;
-    }
-    return n * (n - 1);
-}
-
-fn swap(x: &mut{int}, y: &mut{int}) {
-    let z = ^x;
-    ^x = ^y;
-    ^y = z;
-}
-
-fn largest(x: &{int,a}, y: &{int,a}) &{int,a} {
-    if ^x @>= ^y {
-        return x;
-    } else {
-        return y;
-    }
 }
 
 fn trueOrFalse(x: int) bool {

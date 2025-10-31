@@ -5,8 +5,10 @@ module Stmt = struct
   let with_expr x e =
     match x with
     | Ast.LetStmt y -> Ast.LetStmt { vars = y.vars; expr = e }
+    | Ast.SetStmt y -> Ast.SetStmt { label = y.label; expr = e }
     | Ast.ReturnStmt _ -> Ast.ReturnStmt { expr = e }
     | Ast.InvokeStmt _ -> Ast.InvokeStmt { expr = e }
+    | Ast.IfStmt _ -> Ast.IfStmt { expr = e }
   ;;
 
   let with_vars x v =
