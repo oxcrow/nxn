@@ -9,7 +9,8 @@ and blocks = Block of { stmts : statements list }
 
 and statements =
   | LetStmt of { vars : vars list; expr : expressions }
-  | SetStmt of { vars : expressions list; expr : expressions }
+  | SetStmt of { label : id option; expr : expressions }
+  | AssignStmt of { vars : expressions list; expr : expressions }
   | ReturnStmt of { expr : expressions }
   | InvokeStmt of { expr : expressions }
   | IfStmt of { expr : expressions }

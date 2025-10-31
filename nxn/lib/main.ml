@@ -262,6 +262,9 @@ let infer ast =
     | Ast.SetStmt s ->
         (* TODO: Implement set statement *)
         (env, stmt)
+    | Ast.AssignStmt s ->
+        (* TODO: Implement assign statement *)
+        (env, stmt)
     | Ast.ReturnStmt s ->
         let _, expr = infer_expr env s.expr in
         let stmt = SetAst.Stmt.with_expr stmt expr in
