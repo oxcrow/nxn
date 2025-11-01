@@ -296,6 +296,11 @@ let infer ast =
           let type' = infer_block_type block in
           let expr = Ast.ElseExpr { block; type' } in
           (type', expr)
+      | Ast.BlockExpr o ->
+          let block = infer_block env o.block in
+          let type' = infer_block_type block in
+          let expr = Ast.BlockExpr { block; type' } in
+          (type', expr)
     in
     (type', expr)
   (* Infer statement *)
@@ -341,13 +346,17 @@ let infer ast =
   (* Infer block type using set statements *)
   and infer_block_type block =
     match block with
-    | Ast.Block b ->
-        let stmts =
+    | Ast.Block b -> (
+        let sets =
           List.filter (fun s -> match s with Ast.SetStmt _ -> true | _ -> false) b.stmts
         in
-        let stmt = List.nth stmts 0 in
-        let type' = GetAst.Stmt.type' stmt in
-        type'
+        match List.length sets with
+        | 0 -> Ast.UnitType
+        | 1 ->
+            let first = List.nth sets 0 in
+            let type' = GetAst.Stmt.type' first in
+            type'
+        | _ -> never loc "A block may have only zero or one set statement")
   (* Infer block *)
   and infer_block env block =
     let block =

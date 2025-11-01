@@ -11,7 +11,18 @@ module Loc = struct
 end
 
 module Expr = struct
-  let type' x = match x with Ast.TerminalExpr y -> y.type'
+  let type' x =
+    match x with
+    | Ast.TerminalExpr y -> y.type'
+    | Ast.InvokeExpr y -> y.type'
+    | Ast.BinOpExpr y -> y.type'
+    | Ast.UnOpExpr y -> y.type'
+    | Ast.IfExpr y -> y.type'
+    | Ast.ElseIfExpr y -> y.type'
+    | Ast.ElseExpr y -> y.type'
+    | Ast.BlockExpr y -> y.type'
+    | _ -> failwith @@ "Implement method to get expresison type."
+  ;;
 end
 
 module Stmt = struct

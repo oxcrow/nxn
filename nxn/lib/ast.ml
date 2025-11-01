@@ -17,7 +17,6 @@ and statements =
   | NoneStmt
 
 and expressions =
-  | EntityExpr of { value : entities; type' : types }
   | TerminalExpr of { value : terminals; type' : types }
   | InvokeExpr of { value : id; args : expressions list; type' : types }
   | BinOpExpr of { lvalue : expressions; op : binop; rvalue : expressions; type' : types }
@@ -35,6 +34,8 @@ and expressions =
       type' : types;
     }
   | ElseExpr of { block : blocks; type' : types }
+  | EntityExpr of { value : entities; type' : types }
+  | BlockExpr of { block : blocks; type' : types }
 
 and binop =
   | AddOp

@@ -129,6 +129,7 @@ elsebranch:
 
 expressions:
   | LPAREN x=expressions; RPAREN { x }
+  | x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType} }
   | x=postfix; { x }
   | x=binops; { x }
   | x=unops; { x }

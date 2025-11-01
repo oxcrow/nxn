@@ -1,15 +1,15 @@
 fn main() int {
-    let x = trueOrFalse(9);
+    let x = {
+        let y = INT_MAX();
+        set @if y +>= 0 {
+            set y + 1;
+        } else {
+            set y;
+        };
+    };
     return 0;
 }
 
-fn trueOrFalse(x: int) bool {
-    let y = @if x == 0 {
-        set false;
-    } else if x == 1 {
-        set true;
-    } else {
-        set true;
-    };
-    return y;
+fn INT_MAX() int {
+    return 0;
 }
