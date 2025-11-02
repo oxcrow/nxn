@@ -224,7 +224,8 @@ let infer ast =
               let exprs = List.map second result in
               let value = Ast.StructVal { value = exprs } in
               let type' = Ast.StructType { types } in
-              let expr = Ast.TerminalExpr { value; type' } in
+              let pos = GetAst.Expr.pos expr in
+              let expr = Ast.TerminalExpr { value; type'; pos } in
               (type', expr))
       | Ast.InvokeExpr o ->
           let type' = infer_expr_type env expr in
@@ -240,6 +241,7 @@ let infer ast =
                 op = o.op;
                 rvalue = second (infer_expr env o.rvalue);
                 type' = o.type';
+                pos = o.pos;
               }
           in
           let type' = infer_expr_type env expr in
@@ -248,7 +250,12 @@ let infer ast =
       | Ast.UnOpExpr o ->
           let expr =
             Ast.UnOpExpr
-              { value = second (infer_expr env o.value); op = o.op; type' = o.type' }
+              {
+                value = second (infer_expr env o.value);
+                op = o.op;
+                type' = o.type';
+                pos = o.pos;
+              }
           in
           let type' = infer_expr_type env expr in
           let expr = SetAst.Expr.with_type expr type' in
@@ -302,6 +309,7 @@ let infer ast =
                   | None -> None);
                 is_stmt = o.is_stmt;
                 type';
+                pos = o.pos;
               }
             |> validate_branch_type |> validate_else_branch
           in
@@ -322,18 +330,19 @@ let infer ast =
                   | Some x -> Some (infer_expr env x |> second)
                   | None -> None);
                 type';
+                pos = o.pos;
               }
           in
           (type', expr)
       | Ast.ElseExpr o ->
           let block = infer_block env o.block in
           let type' = infer_block_type block in
-          let expr = Ast.ElseExpr { block; type' } in
+          let expr = Ast.ElseExpr { block; type'; pos = o.pos } in
           (type', expr)
       | Ast.BlockExpr o ->
           let block = infer_block env o.block in
           let type' = infer_block_type block in
-          let expr = Ast.BlockExpr { block; type' } in
+          let expr = Ast.BlockExpr { block; type'; pos = o.pos } in
           (type', expr)
     in
     (type', expr)
@@ -397,7 +406,7 @@ let infer ast =
       match block with
       | Ast.Block b ->
           let stmts = infer_stmts env b.stmts in
-          Ast.Block { stmts }
+          Ast.Block { stmts; pos = b.pos }
     in
     block
   (* Infer entities *)
@@ -406,7 +415,7 @@ let infer ast =
     | Ast.Function f ->
         let env = extend_env env f.args in
         let block = infer_block env f.block in
-        Ast.Function { id = f.id; args = f.args; type' = f.type'; block }
+        Ast.Function { id = f.id; args = f.args; type' = f.type'; block; pos = f.pos }
     | _ -> todo loc "Infer entity." unit
   in
 

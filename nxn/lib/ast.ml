@@ -1,42 +1,59 @@
+(* Silence annoying position/location spam when printing AST. *)
+type loc = Loc of { lnum : int; cnum : int }
+type pos = Pos of { start : loc; end' : loc }
+
+let show_loc _ = ""
+let pp_loc _ _ = ()
+let show_pos _ = ""
+let pp_pos _ _ = ()
+
 type file = File of { entities : entities list } [@@deriving show { with_path = false }]
 
 and entities =
-  | Function of { id : id; args : vars list; type' : types; block : blocks }
+  | Function of { id : id; args : vars list; type' : types; block : blocks; pos : pos }
   | Struct of int
   | Enum
 
-and blocks = Block of { stmts : statements list }
+and blocks = Block of { stmts : statements list; pos : pos }
 
 and statements =
-  | LetStmt of { vars : vars list; expr : expressions }
-  | SetStmt of { label : id option; expr : expressions }
-  | AssignStmt of { vars : expressions list; expr : expressions }
-  | ReturnStmt of { expr : expressions }
-  | InvokeStmt of { expr : expressions }
-  | IfStmt of { expr : expressions }
+  | LetStmt of { vars : vars list; expr : expressions; pos : pos }
+  | SetStmt of { label : id option; expr : expressions; pos : pos }
+  | AssignStmt of { vars : expressions list; expr : expressions; pos : pos }
+  | ReturnStmt of { expr : expressions; pos : pos }
+  | InvokeStmt of { expr : expressions; pos : pos }
+  | IfStmt of { expr : expressions; pos : pos }
   | NoneStmt
 
 and expressions =
-  | TerminalExpr of { value : terminals; type' : types }
-  | InvokeExpr of { value : id; args : expressions list; type' : types }
-  | BinOpExpr of { lvalue : expressions; op : binop; rvalue : expressions; type' : types }
-  | UnOpExpr of { value : expressions; op : unop; type' : types }
+  | TerminalExpr of { value : terminals; type' : types; pos : pos }
+  | InvokeExpr of { value : id; args : expressions list; type' : types; pos : pos }
+  | BinOpExpr of {
+      lvalue : expressions;
+      op : binop;
+      rvalue : expressions;
+      type' : types;
+      pos : pos;
+    }
+  | UnOpExpr of { value : expressions; op : unop; type' : types; pos : pos }
   | IfExpr of {
       cond : expressions;
       block : blocks;
       other : expressions option;
       is_stmt : bool;
       type' : types;
+      pos : pos;
     }
   | ElseIfExpr of {
       cond : expressions;
       block : blocks;
       other : expressions option;
       type' : types;
+      pos : pos;
     }
-  | ElseExpr of { block : blocks; type' : types }
-  | EntityExpr of { value : entities; type' : types }
-  | BlockExpr of { block : blocks; type' : types }
+  | ElseExpr of { block : blocks; type' : types; pos : pos }
+  | EntityExpr of { value : entities; type' : types; pos : pos }
+  | BlockExpr of { block : blocks; type' : types; pos : pos }
 
 and binop =
   | AddOp
@@ -92,4 +109,3 @@ and traits =
 
 and state = ConState | MutState | SetState
 and id = Id of { value : string; loc : loc }
-and loc = Loc of { lnum : int; cnum : int }

@@ -1,3 +1,19 @@
+%{
+  let location (x: Lexing.position) =
+    let lnum = x.pos_lnum in
+    let cnum = x.pos_cnum - x.pos_bol in
+    let loc = Ast.Loc{lnum=lnum; cnum=cnum} in
+    loc
+  ;;
+
+  let position (startpos: Lexing.position) (endpos: Lexing.position) =
+    let start = location startpos in
+    let end' = location endpos in
+    let pos = Ast.Pos{start=start; end'=end'} in
+    pos
+  ;;
+%}
+
 %token <int> INTVAL
 %token <float> FLOATVAL
 %token <string> IDVAL
@@ -100,28 +116,30 @@ entities:
           type'=(Ast.FunctionType{
                      args=(List.map (fun var -> match var with | Ast.Var v -> v.type') a);
                      type'=t});
-          block=b;} }
+          block=b;
+          pos=(position $startpos $endpos)
+    } }
 
 blocks:
-  | LBRACE s=list(statements); RBRACE { Ast.Block {stmts=s} }
+  | LBRACE s=list(statements); RBRACE { Ast.Block {stmts=s; pos=(position $startpos $endpos)} }
 
 statements:
-  | LET v=seplist(COMMA,vars); EQUAL e=expressions; SEMICOLON { Ast.LetStmt {vars=v; expr=e;} }
-  | SET x=expressions; SEMICOLON { Ast.SetStmt {label=None; expr=x} }
-  | v=seplist(COMMA,expressions) EQUAL e=expressions; SEMICOLON { Ast.AssignStmt {vars=v; expr=e;} }
-  | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x} }
-  | x=expressions; SEMICOLON { Ast.InvokeStmt {expr=x} }
+  | LET v=seplist(COMMA,vars); EQUAL e=expressions; SEMICOLON { Ast.LetStmt {vars=v; expr=e; pos=(position $startpos $endpos)} }
+  | SET x=expressions; SEMICOLON { Ast.SetStmt {label=None; expr=x; pos=(position $startpos $endpos)} }
+  | v=seplist(COMMA,expressions) EQUAL e=expressions; SEMICOLON { Ast.AssignStmt {vars=v; expr=e; pos=(position $startpos $endpos)} }
+  | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x; pos=(position $startpos $endpos)} }
+  | x=expressions; SEMICOLON { Ast.InvokeStmt {expr=x; pos=(position $startpos $endpos)} }
   | x=ifstmts; { x }
 
 ifstmts:
-  | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfStmt {expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType}} }
+  | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfStmt {expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType; pos=(position $startpos $endpos)}; pos=(position $startpos $endpos)} }
 
 ifexprs:
-  | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfExpr {cond=c; block=b; other=o; is_stmt=false; type'=Ast.NoneType} }
+  | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfExpr {cond=c; block=b; other=o; is_stmt=false; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
 elseifexprs:
-  | ELSE IF c=expressions; b=blocks; o=option(elsebranch); { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType} }
+  | ELSE IF c=expressions; b=blocks; o=option(elsebranch); { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
 elseexprs:
-  | ELSE b=blocks; { Ast.ElseExpr {block=b; type'=Ast.NoneType} }
+  | ELSE b=blocks; { Ast.ElseExpr {block=b; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
 
 elsebranch:
   | x=elseifexprs; { x }
@@ -129,46 +147,46 @@ elsebranch:
 
 expressions:
   | LPAREN x=expressions; RPAREN { x }
-  | x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType} }
+  | x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
   | x=postfix; { x }
   | x=binops; { x }
   | x=unops; { x }
 
 postfix:
   | x=exprs; { x }
-  | x=exprs; QUESTION { Ast.UnOpExpr {value=x; op=Ast.TryOp; type'=Ast.NoneType} }
+  | x=exprs; QUESTION { Ast.UnOpExpr {value=x; op=Ast.TryOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
 
 binops:
-  | x=expressions; PLUS  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.AddOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; MINUS y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.SubOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; STAR  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.MulOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; SLASH y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.DivOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; PLUS  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.AddOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=expressions; MINUS y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.SubOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=expressions; STAR  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.MulOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=expressions; SLASH y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.DivOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
   | x=conds; { x }
 
 conds:
-  | x=expressions; EQ y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.EqOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; NE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.NeOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; LE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LeOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; GE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GeOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; LT y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LtOp; rvalue=y; type'=Ast.NoneType} }
-  | x=expressions; GT y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GtOp; rvalue=y; type'=Ast.NoneType} }
+  | x=expressions; EQ y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.EqOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=expressions; NE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.NeOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=expressions; LE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LeOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=expressions; GE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GeOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=expressions; LT y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LtOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=expressions; GT y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GtOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
 
 unops:
-  | PLUS x=expressions; %prec UPLUS { Ast.UnOpExpr {value=x; op=Ast.PosOp; type'=Ast.NoneType} }
-  | MINUS x=expressions; %prec UMINUS { Ast.UnOpExpr {value=x; op=Ast.NegOp; type'=Ast.NoneType} }
-  | EXCLAMATION x=expressions; %prec NOT { Ast.UnOpExpr {value=x; op=Ast.NotOp; type'=Ast.NoneType} }
+  | PLUS x=expressions; %prec UPLUS { Ast.UnOpExpr {value=x; op=Ast.PosOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | MINUS x=expressions; %prec UMINUS { Ast.UnOpExpr {value=x; op=Ast.NegOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | EXCLAMATION x=expressions; %prec NOT { Ast.UnOpExpr {value=x; op=Ast.NotOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
   | x=refs; { x }
 
 refs:
-  | AMPERSAND x=expressions; %prec UCONREF { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType} }
-  | AMPERSAND MUT x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType} }
-  | STAR x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType} }
-  | CARET x=expressions; %prec UDEREF { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType} }
+  | AMPERSAND x=expressions; %prec UCONREF { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | AMPERSAND MUT x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | STAR x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | CARET x=expressions; %prec UDEREF { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
 
 exprs:
-  | x=entities; { Ast.EntityExpr {value=x; type'=Ast.NoneType} }
-  | x=terminals; { Ast.TerminalExpr {value=x; type'=Ast.NoneType} }
-  | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN { Ast.InvokeExpr {value=i; args=a; type'=Ast.NoneType} }
+  | x=entities; { Ast.EntityExpr {value=x; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | x=terminals; { Ast.TerminalExpr {value=x; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN { Ast.InvokeExpr {value=i; args=a; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
   | AT x=ifexprs; { x }
 
 terminals:
