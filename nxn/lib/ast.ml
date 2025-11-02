@@ -25,6 +25,7 @@ and expressions =
       cond : expressions;
       block : blocks;
       other : expressions option;
+      is_stmt : bool;
       type' : types;
     }
   | ElseIfExpr of {

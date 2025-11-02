@@ -265,9 +265,25 @@ let infer ast =
                   match o.other with Some x -> aux x type' | None -> unit)
               | Ast.ElseExpr o ->
                   verify loc (o.type' = type') "else branch type doesn't match"
-              | _ -> never loc "Only if/else expressions are allowed." unit
+              | _ -> never loc "Only if/else expressions are allowed."
             in
             aux expr (GetAst.Expr.type' expr);
+            expr
+          in
+          let validate_else_branch expr =
+            let rec aux expr =
+              match expr with
+              | Ast.IfExpr o -> (
+                  match o.is_stmt with
+                  | true -> true
+                  | false -> ( match o.other with Some x -> aux x | None -> false))
+              | Ast.ElseIfExpr o -> (
+                  match o.other with Some x -> aux x | None -> false)
+              | Ast.ElseExpr _ -> true
+              | _ -> never loc "Only if/else expressions are allowed."
+            in
+            let valid = aux expr in
+            verify loc valid "else branch not found for conditional expression";
             expr
           in
           let block = infer_block env o.block in
@@ -284,9 +300,10 @@ let infer ast =
                   (match o.other with
                   | Some x -> Some (infer_expr env x |> second)
                   | None -> None);
+                is_stmt = o.is_stmt;
                 type';
               }
-            |> validate_branch_type
+            |> validate_branch_type |> validate_else_branch
           in
           (type', expr)
       | Ast.ElseIfExpr o ->
