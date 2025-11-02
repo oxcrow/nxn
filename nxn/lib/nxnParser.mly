@@ -114,12 +114,12 @@ statements:
   | x=ifstmts; { x }
 
 ifstmts:
-  | IF c=conds; b=blocks; o=option(elsebranch); { Ast.IfStmt {expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType}} }
+  | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfStmt {expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType}} }
 
 ifexprs:
-  | IF c=conds; b=blocks; o=option(elsebranch); { Ast.IfExpr {cond=c; block=b; other=o; is_stmt=false; type'=Ast.NoneType} }
+  | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfExpr {cond=c; block=b; other=o; is_stmt=false; type'=Ast.NoneType} }
 elseifexprs:
-  | ELSE IF c=conds; b=blocks; o=option(elsebranch); { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType} }
+  | ELSE IF c=expressions; b=blocks; o=option(elsebranch); { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType} }
 elseexprs:
   | ELSE b=blocks; { Ast.ElseExpr {block=b; type'=Ast.NoneType} }
 

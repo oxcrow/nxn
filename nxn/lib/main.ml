@@ -293,7 +293,7 @@ let infer ast =
               {
                 cond =
                   (let type', expr = infer_expr env o.cond in
-                   ensure loc (type' = Ast.BoolType);
+                   verify loc (type' = Ast.BoolType) "Only bool values can be conditions";
                    expr);
                 block;
                 other =
@@ -314,7 +314,7 @@ let infer ast =
               {
                 cond =
                   (let type', expr = infer_expr env o.cond in
-                   ensure loc (type' = Ast.BoolType);
+                   verify loc (type' = Ast.BoolType) "Only bool values can be conditions";
                    expr);
                 block;
                 other =
