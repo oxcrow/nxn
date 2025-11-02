@@ -254,6 +254,22 @@ let infer ast =
           let expr = SetAst.Expr.with_type expr type' in
           (type', expr)
       | Ast.IfExpr o ->
+          let validate_branch_type expr =
+            let rec aux expr type' =
+              match expr with
+              | Ast.IfExpr o -> (
+                  verify loc (o.type' = type') "if branch type doesn't match";
+                  match o.other with Some x -> aux x type' | None -> unit)
+              | Ast.ElseIfExpr o -> (
+                  verify loc (o.type' = type') "else if branch type doesn't match";
+                  match o.other with Some x -> aux x type' | None -> unit)
+              | Ast.ElseExpr o ->
+                  verify loc (o.type' = type') "else branch type doesn't match"
+              | _ -> never loc "Only if/else expressions are allowed." unit
+            in
+            aux expr (GetAst.Expr.type' expr);
+            expr
+          in
           let block = infer_block env o.block in
           let type' = infer_block_type block in
           let expr =
@@ -270,6 +286,7 @@ let infer ast =
                   | None -> None);
                 type';
               }
+            |> validate_branch_type
           in
           (type', expr)
       | Ast.ElseIfExpr o ->
