@@ -1,0 +1,5 @@
+// Return an integer value from main function
+
+fn main() i32 {
+    return 9;
+}

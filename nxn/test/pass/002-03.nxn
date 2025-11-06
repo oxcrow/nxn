@@ -1,0 +1,21 @@
+// Borrow a reference and return reference of the largest value
+
+fn main() i32 {
+    let x = 9;
+    let y = 8;
+    let z = largest(&x, &y);
+    let w = ^z;
+    return w;
+}
+
+fn largest(x: &a|int, y: &a|int) &a|int {
+    if x +> y {
+        return x;
+    } else {
+        return y;
+    }
+    return x;
+}
+
+fn stress(x: &&b|*a|()) {
+}

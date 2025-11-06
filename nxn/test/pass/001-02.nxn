@@ -1,0 +1,9 @@
+// Return an exit code of integer value after adding two integers
+
+fn main() i32 {
+    return add(4, 4);
+}
+
+fn add(a: int, b: int) int {
+    return a + b;
+}

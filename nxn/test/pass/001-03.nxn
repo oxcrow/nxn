@@ -1,0 +1,15 @@
+// Swap two integers using pointers
+
+fn main() i32 {
+    let mut a = 8;
+    let mut b = 7;
+    swap(*a, *b);
+    return a;
+}
+
+fn swap(a: *int, b: *int) {
+    let avalue = ^a;
+    let bvalue = ^b;
+    ^a = avalue;
+    ^b = bvalue;
+}

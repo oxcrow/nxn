@@ -46,6 +46,8 @@ rule token = parse
   | "type" { NxnParser.TYPE }
   | "bool" { NxnParser.BOOL }
   | "int" { NxnParser.INT }
+  | "i32" { NxnParser.I32 }
+  | "u32" { NxnParser.U32 }
   | "float" { NxnParser.FLOAT }
   | "true" { NxnParser.TRUE }
   | "false" { NxnParser.FALSE }

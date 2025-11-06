@@ -1,0 +1,13 @@
+// Borrow a reference and return a reference
+
+fn main() i32 {
+    let x = 9;
+    let y = 8;
+    let z = borrow(&x, &y);
+    let w = ^z;
+    return w;
+}
+
+fn borrow(x: &a|int, y: &a|int) &a|int {
+    return y;
+}

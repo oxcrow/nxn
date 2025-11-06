@@ -46,6 +46,8 @@
 %token TYPE
 %token BOOL
 %token INT
+%token I32
+%token U32
 %token FLOAT
 %token TRUE
 %token FALSE
@@ -224,6 +226,8 @@ types:
   | LPAREN RPAREN { Ast.UnitType }
   | BOOL { Ast.BoolType }
   | INT { Ast.IntType }
+  | I32 { Ast.IntType }
+  | U32 { Ast.IntType }
   | FLOAT { Ast.FloatType }
   | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
   | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
