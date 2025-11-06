@@ -10,7 +10,11 @@ fn main() int {
     return 0;
 }
 
-fn largest(x: &{int,a}, y: &{int,a}) &{int,a} {
+fn INT_MAX() int {
+    return 0;
+}
+
+fn largest(x: &a|int, y: &a|int) &a|int {
     if x +>= y {
         return x;
     } else {
@@ -18,12 +22,11 @@ fn largest(x: &{int,a}, y: &{int,a}) &{int,a} {
     }
 }
 
-fn swap(x: *{int,a}, y: *{int,a}) {
+fn swap(x: *a|int, y: *a|int) {
     let temp = ^x;
     ^x = ^y;
     ^y = temp;
 }
 
-fn INT_MAX() int {
-    return 0;
+fn test(x: &&b|*a|()) {
 }

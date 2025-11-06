@@ -85,6 +85,7 @@
 %token STAR
 %token SLASH
 %token CARET
+%token BAR
 
 %token RETURN
 %token EOF
@@ -226,11 +227,11 @@ types:
   | FLOAT { Ast.FloatType }
   | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
   | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
-  | AMPERSAND LBRACE t=types; l=option(life); RBRACE { Ast.ConRefType {life=l; types=t} }
-  | STAR LBRACE t=types; l=option(life); RBRACE { Ast.MutRefType {life=l; types=t} }
+  | AMPERSAND l=option(life); t=types; { Ast.ConRefType {life=l; types=t} }
+  | STAR l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
 
 life:
-  | COMMA l=id; { l }
+  | l=id; BAR { l }
 
 id:
   | loc=locate; i=IDVAL; { Ast.Id {value=i; loc=loc} }

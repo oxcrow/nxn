@@ -85,6 +85,7 @@ rule token = parse
   | "*" { NxnParser.STAR }
   | "/" { NxnParser.SLASH }
   | "^" { NxnParser.CARET }
+  | "|" { NxnParser.BAR }
 
   | "return" { NxnParser.RETURN}
 
