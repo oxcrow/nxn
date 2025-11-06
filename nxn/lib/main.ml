@@ -105,6 +105,16 @@ let infer ast =
     vars
   in
 
+  let rec simplify_type type' =
+    let type' =
+      match type' with
+      | Ast.ConRefType t -> Ast.ConRefType { life = None; types = t.types }
+      | Ast.MutRefType t -> Ast.MutRefType { life = None; types = t.types }
+      | _ -> type'
+    in
+    type'
+  in
+
   let rec infer_expr_type env expr =
     let type' =
       match expr with
@@ -153,8 +163,8 @@ let infer ast =
           type'
       | Ast.BinOpExpr o ->
           let match_types env lvalue rvalue =
-            let ltype = infer_expr_type env lvalue in
-            let rtype = infer_expr_type env rvalue in
+            let ltype = infer_expr_type env lvalue |> simplify_type in
+            let rtype = infer_expr_type env rvalue |> simplify_type in
             let type' =
               if ltype = rtype then ltype else error loc "Binary operator types mismatch."
             in

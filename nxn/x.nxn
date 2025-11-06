@@ -10,6 +10,20 @@ fn main() int {
     return 0;
 }
 
+fn largest(x: &{int,a}, y: &{int,a}) &{int,a} {
+    if x +>= y {
+        return x;
+    } else {
+        return y;
+    }
+}
+
+fn swap(x: *{int,a}, y: *{int,a}) {
+    let temp = ^x;
+    ^x = ^y;
+    ^y = temp;
+}
+
 fn INT_MAX() int {
     return 0;
 }

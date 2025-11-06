@@ -227,7 +227,7 @@ types:
   | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
   | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
   | AMPERSAND LBRACE t=types; l=option(life); RBRACE { Ast.ConRefType {life=l; types=t} }
-  | AMPERSAND MUT LBRACE t=types; l=option(life); RBRACE { Ast.MutRefType {life=l; types=t} }
+  | STAR LBRACE t=types; l=option(life); RBRACE { Ast.MutRefType {life=l; types=t} }
 
 life:
   | COMMA l=id; { l }
