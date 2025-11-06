@@ -1,5 +1,5 @@
 # files we marked to ignore
-.ign.*
+.ignore.*
 
 # files that we use but want to ignore
 run.txt
