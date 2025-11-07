@@ -12,22 +12,63 @@ external loc : string = "%loc_LOC"
 (** Print AST for debugging. *)
 let printast ast = write ("+ " ^ Ast.show_file ast ^ "\n")
 
+(** Evalulate error message *)
+let errormsg filename pos =
+  let lnum, cnum = pos in
+  let line0 =
+    "\n (Around approximate position: " ^ "(Line: " ^ string_of_int lnum ^ ", Column: "
+    ^ string_of_int cnum ^ ") of File: \"" ^ filename ^ "\")\n"
+  in
+
+  let lines = String.split_on_char '\n' (File.read_file_content filename) in
+  let line lnum =
+    let code =
+      match lnum > 0 && lnum < List.length lines with
+      | true -> List.nth lines (lnum - 1)
+      | false -> ""
+    in
+    " : " ^ Format.sprintf "%*d" 5 lnum ^ " ┊ " ^ code
+  in
+
+  let black = "\027[0m" in
+  let red = "\027[31m" in
+
+  let line1 = line (lnum - 2) ^ "\n" in
+  let line2 = line (lnum - 1) ^ "\n" in
+  let line3 = red ^ line (lnum - 0) ^ black ^ "\n" in
+  let line4 = line (lnum + 1) ^ "\n" in
+  let line5 = line (lnum + 2) ^ "\n" in
+
+  let text = line1 ^ line2 ^ line3 ^ line4 ^ line5 in
+  let msg = line0 ^ text in
+  msg
+;;
+
 (** Parse nxn code and create AST *)
-let parse (code : string) =
+let parse code filename =
   let buf = Lexing.from_string code in
-  let error_pos (buf : Lexing.lexbuf) =
+
+  let errorpos (buf : Lexing.lexbuf) =
     let lnum = buf.lex_curr_p.pos_lnum in
     let cnum = buf.lex_curr_p.pos_cnum - buf.lex_curr_p.pos_bol in
-    let pos =
-      "Around approximate position: " ^ "(Line: " ^ string_of_int lnum ^ ", Column: "
-      ^ string_of_int cnum ^ ")"
-    in
-    pos
+    (lnum, cnum)
   in
-  let ast =
+
+  let parsed_ast =
     try NxnParser.file NxnLexer.token buf with
-    | NxnParser.Error -> failwith ("Parser error: " ^ error_pos buf)
-    | Failure msg -> failwith ("Parser error: " ^ error_pos buf ^ ", With message: " ^ msg)
+    | NxnParser.Error ->
+        let pos = errorpos buf in
+        let reason = errormsg filename pos in
+        error loc ("Parser error: " ^ reason)
+    | Failure msg ->
+        let pos = errorpos buf in
+        let reason = errormsg filename pos in
+        error loc ("Parser error: " ^ reason ^ ", With message: " ^ msg)
+  in
+
+  let ast =
+    match parsed_ast with
+    | Ast.File f -> Ast.File { entities = f.entities; filename = Some filename }
   in
   ast
 ;;
@@ -434,7 +475,11 @@ let infer ast =
     tst
   in
 
-  let tst = Ast.File { entities = envir ast |> infer } in
+  (* Create typed ast by infering its entities *)
+  let tst =
+    match ast with
+    | Ast.File f -> Ast.File { entities = envir ast |> infer; filename = f.filename }
+  in
   tst
 ;;
 
@@ -442,11 +487,19 @@ let infer ast =
 let emit cfg = unit
 
 (** Compile a file *)
-let compile file =
+let compile_file file =
   let code = File.read_file_content file in
-  let ast = parse code in
+  let ast = parse code file in
   let tst = infer ast in
   unit
+;;
+
+(** Compile code and report error *)
+let compile file =
+  try compile_file file with
+  | Failure msg -> write msg
+  | exn -> write @@ Printexc.to_string exn
+  | _ -> todo loc "Unknown error raised."
 ;;
 
 (** Generate executable *)

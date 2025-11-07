@@ -108,8 +108,8 @@
 %%
 
 file:
-  | EOF { Ast.File { entities = [] } }
-  | e = nonempty_list(entities) EOF {Ast.File { entities = e }}
+  | EOF { Ast.File { entities = []; filename = None } }
+  | e = nonempty_list(entities) EOF {Ast.File { entities = e; filename = None }}
 
 entities:
   | FN i=id; LPAREN a=seplist(COMMA,vars); RPAREN t=return_types; b=blocks;
