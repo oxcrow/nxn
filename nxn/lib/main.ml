@@ -519,23 +519,19 @@ let compile file =
 let exe ir = unit
 
 (** Run integration tests *)
-let verify x =
-  match x with
-  | 0 ->
-      compile "test/pass/001-01.nxn" |> exe;
-      compile "test/pass/001-02.nxn" |> exe;
-      compile "test/pass/001-03.nxn" |> exe;
-      compile "test/pass/002-01.nxn" |> exe;
-      compile "test/pass/002-02.nxn" |> exe;
-      compile "test/pass/002-03.nxn" |> exe;
-      unit
-  | _ -> unit
+let validate () =
+  compile "test/pass/001-01.nxn" |> exe;
+  compile "test/pass/001-02.nxn" |> exe;
+  compile "test/pass/001-03.nxn" |> exe;
+  compile "test/pass/002-01.nxn" |> exe;
+  compile "test/pass/002-02.nxn" |> exe;
+  compile "test/pass/002-03.nxn" |> exe;
+  unit
 ;;
 
 (** Execution starts here *)
 let main =
-  compile "x.nxn";
-  verify 0;
+  compile "x.nxn" |> validate;
   write "+";
   unit
 ;;
