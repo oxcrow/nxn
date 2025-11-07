@@ -183,7 +183,7 @@ unops:
 
 refs:
   | AMPERSAND x=expressions; %prec UCONREF { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | AMPERSAND MUT x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | MUT AMPERSAND x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
   | STAR x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
   | CARET x=expressions; %prec UDEREF { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
 
@@ -233,6 +233,7 @@ types:
   | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
   | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
   | AMPERSAND l=option(life); t=types; { Ast.ConRefType {life=l; types=t} }
+  | MUT AMPERSAND l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
   | STAR l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
 
 life:
