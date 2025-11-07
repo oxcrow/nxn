@@ -7,12 +7,12 @@ let pp_loc _ _ = ()
 let show_pos _ = ""
 let pp_pos _ _ = ()
 
-type file = File of { entities : entities list; filename : string option }
+type file = File of { entities : entities list; filename : string }
 [@@deriving show { with_path = false }]
 
 and entities =
   | Function of { id : id; args : vars list; type' : types; block : blocks; pos : pos }
-  | Struct of int
+  | Struct of { id : id; pos : pos }
   | Enum
 
 and blocks = Block of { stmts : statements list; pos : pos }

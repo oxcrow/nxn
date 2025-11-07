@@ -1,14 +1,15 @@
+module Loc = struct
+  let lnum x = match x with Ast.Loc y -> y.lnum
+  let cnum x = match x with Ast.Loc y -> y.cnum
+end
+
 module Id = struct
   let value x = match x with Ast.Id y -> y.value
   let loc x = match x with Ast.Id y -> y.loc
+  let xpos x = match x with Ast.Id y -> (Loc.lnum y.loc, Loc.cnum y.loc)
 end
 
 module Type = struct end
-
-module Loc = struct
-  let line_num x = match x with Ast.Loc y -> y.lnum
-  let column_num x = match x with Ast.Loc y -> y.cnum
-end
 
 module Expr = struct
   let type' x =
@@ -41,4 +42,10 @@ end
 module Stmt = struct
   let vars x = match x with Ast.LetStmt y -> y.vars
   let type' x = match x with Ast.SetStmt y -> Expr.type' y.expr
+end
+
+module Entity = struct
+  let xpos x =
+    match x with Ast.Function y -> Id.xpos y.id | Ast.Struct y -> Id.xpos y.id
+  ;;
 end

@@ -67,8 +67,7 @@ let parse code filename =
   in
 
   let ast =
-    match parsed_ast with
-    | Ast.File f -> Ast.File { entities = f.entities; filename = Some filename }
+    match parsed_ast with Ast.File f -> Ast.File { entities = f.entities; filename }
   in
   ast
 ;;
@@ -78,14 +77,15 @@ let infer ast =
   (* Create environment *)
   let envir ast =
     (* Create environment record list of functions *)
-    let envfns entities =
+    let envfns filename entities =
       List.map
         (fun entity ->
           match entity with
           | Ast.Function f ->
+              let xpos = GetAst.Entity.xpos entity in
               let id = GetAst.Id.value f.id in
               let type' = f.type' in
-              (id, type')
+              (id, type', xpos)
           | _ -> never loc "Only functions are allowed.")
         (List.filter
            (fun e -> match e with Ast.Function _ -> true | _ -> false)
@@ -93,20 +93,32 @@ let infer ast =
     in
 
     (* Validate environment records *)
-    let validate records =
-      let rec count id n = function
+    let validate filename records =
+      let rec count id n records =
+        match records with
         | [] -> n
-        | (x, _) :: tl -> if x = id then count id (n + 1) tl else count id n tl
+        | (x, _, _) :: tl -> if x = id then count id (n + 1) tl else count id n tl
       in
-      let counts = List.map (fun (id, _) -> count id 0 records) records in
+      let counts = List.map (fun (id, _, xpos) -> (count id 0 records, xpos)) records in
+
       (* We should report which identifier has multiple ocurrances *)
       List.iter
-        (fun n -> if n > 1 then never loc "Multiple occurances of stupid identifier.")
+        (fun (n, xpos) ->
+          if n > 1 then
+            warn loc ("Multiple occurances of identifier. " ^ errormsg filename xpos))
         counts;
-      records
+      List.iter
+        (fun (n, _) -> if n > 1 then error loc "Multiple occurances of identifier.")
+        counts;
+
+      (* Remove position from records *)
+      let result = List.map (fun (id, type', _) -> (id, type')) records in
+      result
     in
 
-    let functions = match ast with Ast.File f -> envfns f.entities |> validate in
+    let functions =
+      match ast with Ast.File f -> envfns f.filename f.entities |> validate f.filename
+    in
 
     let env =
       Env.File { name = "x.nxn"; functions; structs = []; enums = []; vars = [] }
@@ -467,6 +479,7 @@ let infer ast =
         let env = extend_env env f.args in
         let block = infer_block env f.block in
         Ast.Function { id = f.id; args = f.args; type' = f.type'; block; pos = f.pos }
+    | Ast.Struct _ -> enty
     | _ -> todo loc "Infer entity." unit
   in
 

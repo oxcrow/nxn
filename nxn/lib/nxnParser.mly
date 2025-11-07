@@ -108,8 +108,8 @@
 %%
 
 file:
-  | EOF { Ast.File { entities = []; filename = None } }
-  | e = nonempty_list(entities) EOF {Ast.File { entities = e; filename = None }}
+  | EOF { Ast.File { entities = []; filename = "_" } }
+  | e = nonempty_list(entities) EOF {Ast.File { entities = e; filename = "_" }}
 
 entities:
   | FN i=id; LPAREN a=seplist(COMMA,vars); RPAREN t=return_types; b=blocks;
@@ -122,6 +122,7 @@ entities:
           block=b;
           pos=(position $startpos $endpos)
     } }
+  | STRUCT i=id; LBRACE RBRACE { Ast.Struct {id=i; pos=(position $startpos $endpos)} }
 
 blocks:
   | LBRACE s=list(statements); RBRACE { Ast.Block {stmts=s; pos=(position $startpos $endpos)} }
