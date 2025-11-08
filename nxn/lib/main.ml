@@ -438,6 +438,24 @@ let infer ast =
         let _, expr = infer_expr env s.expr in
         let stmt = SetAst.Stmt.with_expr stmt expr in
         (env, stmt)
+    | Ast.BlockStmt s ->
+        let block = infer_block env s.block in
+        verify loc
+          (infer_block_type block = Ast.UnitType)
+          ("Block statements can not return values with set statements."
+          ^ errormsg (GetAst.File.filename ast)
+              (match block with
+              | Ast.Block b -> (
+                  let sets =
+                    List.filter
+                      (fun s -> match s with Ast.SetStmt _ -> true | _ -> false)
+                      b.stmts
+                  in
+                  match List.length sets with
+                  | 1 -> GetAst.Stmt.xpos (List.nth sets 0)
+                  | _ -> (0, 0))));
+        let stmt = Ast.BlockStmt { block; pos = s.pos } in
+        (env, stmt)
     | _ -> todo loc "Infer statement."
   (* Infer list of statements *)
   and infer_stmts env stmts =
@@ -523,6 +541,7 @@ let validate () =
   compile "test/pass/001-01.nxn" |> exe;
   compile "test/pass/001-02.nxn" |> exe;
   compile "test/pass/001-03.nxn" |> exe;
+  compile "test/pass/001-04.nxn" |> exe;
   compile "test/pass/002-01.nxn" |> exe;
   compile "test/pass/002-02.nxn" |> exe;
   compile "test/pass/002-03.nxn" |> exe;

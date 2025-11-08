@@ -134,6 +134,7 @@ statements:
   | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x; pos=(position $startpos $endpos)} }
   | x=expressions; SEMICOLON { Ast.InvokeStmt {expr=x; pos=(position $startpos $endpos)} }
   | x=ifstmts; { x }
+  | x=blocks; { Ast.BlockStmt {block=x; pos=(position $startpos $endpos)} }
 
 ifstmts:
   | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfStmt {expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType; pos=(position $startpos $endpos)}; pos=(position $startpos $endpos)} }
@@ -151,7 +152,7 @@ elsebranch:
 
 expressions:
   | LPAREN x=expressions; RPAREN { x }
-  | x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+  | AT x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
   | x=postfix; { x }
   | x=binops; { x }
   | x=unops; { x }

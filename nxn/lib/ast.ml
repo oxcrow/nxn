@@ -24,6 +24,7 @@ and statements =
   | ReturnStmt of { expr : expressions; pos : pos }
   | InvokeStmt of { expr : expressions; pos : pos }
   | IfStmt of { expr : expressions; pos : pos }
+  | BlockStmt of { block : blocks; pos : pos }
   | NoneStmt
 
 and expressions =
