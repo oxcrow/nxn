@@ -1,0 +1,5 @@
+(coq.theory
+ (name nvn)
+ (package nvn)
+ (synopsis "A formally verified compiler for the nxn programming language.")
+)
