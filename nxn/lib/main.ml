@@ -77,7 +77,7 @@ let infer ast =
   (* Create environment *)
   let envir ast =
     (* Create environment record list of functions *)
-    let envfns filename entities =
+    let envfns entities =
       List.map
         (fun entity ->
           match entity with
@@ -93,7 +93,7 @@ let infer ast =
     in
 
     (* Validate environment records *)
-    let validate filename records =
+    let validate records =
       let rec count id n records =
         match records with
         | [] -> n
@@ -102,6 +102,7 @@ let infer ast =
       let counts = List.map (fun (id, _, xpos) -> (count id 0 records, xpos)) records in
 
       (* We should report which identifier has multiple ocurrances *)
+      let filename = GetAst.File.filename ast in
       List.iter
         (fun (n, xpos) ->
           if n > 1 then
@@ -116,9 +117,7 @@ let infer ast =
       result
     in
 
-    let functions =
-      match ast with Ast.File f -> envfns f.filename f.entities |> validate f.filename
-    in
+    let functions = match ast with Ast.File f -> envfns f.entities |> validate in
 
     let env =
       Env.File { name = "x.nxn"; functions; structs = []; enums = []; vars = [] }
