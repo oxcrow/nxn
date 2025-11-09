@@ -1,58 +1,27 @@
 # files we marked to ignore
 .ignore.*
 
-# files that we use but want to ignore
-run.txt
-
-# Doxygen files and folders
-Doxyfile
-**/html/**
-**/latex/**
-
 # basic files and folders
-build/*
 **/build/**
 **/_build/**
-BUILD/*
-**/BUILD/**
-**/build-*/**
-**/target/**
 *.swp~
 tags
-CMakeLists.txt.user
-
-# ignore third party code
-**/thirdparty/**
+*.vim
 
 # files created during compilation
 *.out
 *.o
-*.mod
-*.opam
+*.s
 *.bc
-
-# files created by rust
-Cargo.lock
+*.opam
 
 # scripts
 run.sh
 ff-run.sh
 pretty.sh
 
-# files created by our own code
-*.dat
-
-# files created by neovim
-*.vim
-
-# files created by qtcreator
-*.config
-*.creator
-*.creator.user
-*.files
-*.includes
-
 # files created by lsp server
+.clangd
 **/.cache/**
 compile_commands.json
 
@@ -61,19 +30,9 @@ perf.data
 perf.data.old
 cachegrind.out.*
 
-# files for lsp
-.fortls
-.clangd
-
 # files created by our code
-*.vtk
 *.dat
 *.csv
-
-# mesh files
-*.su2
-*.msh
-*.cgns
 
 # project specific files
 */makefile
