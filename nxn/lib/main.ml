@@ -212,18 +212,12 @@ let infer ast =
                   ^ errormsg (GetAst.File.filename ast) (GetAst.Id.xpos o.value))
           in
           (* Validate that the function argument types match *)
-          let _ =
-            if
-              List.map (fun arg -> infer_expr_type env arg) o.args
-              <> List.map
-                   (fun argtype ->
-                     match argtype with
-                     | Ast.ConRefType t -> Ast.ConRefType { life = None; types = t.types }
-                     | Ast.MutRefType t -> Ast.MutRefType { life = None; types = t.types }
-                     | _ -> argtype)
-                   argtypes
-            then never loc "Function argument types don't match"
-          in
+          assure loc
+            (List.map (fun arg -> infer_expr_type env arg) o.args
+            = List.map simplify_type argtypes)
+            (fun _ ->
+              "Function argument types don't match"
+              ^ errormsg (GetAst.File.filename ast) (GetAst.Expr.xpos expr));
           type'
       | Ast.BinOpExpr o ->
           let match_types env lvalue rvalue =

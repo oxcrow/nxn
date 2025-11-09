@@ -9,6 +9,7 @@ module Failure = struct
   let error loc x = failwith @@ "Error: " ^ x ^ sp ^ paren loc
   let ensure loc c = if c = true then () else error loc "Assert failed."
   let verify loc c x = if c then () else error loc ("Assert failed: " ^ x)
+  let assure loc c x = if c then () else error loc (x ())
 end
 
 module Unwrap = struct

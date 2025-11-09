@@ -40,6 +40,19 @@ module Expr = struct
     | Ast.BlockExpr y -> y.pos
     | _ -> failwith @@ "Implement method to get expresison type."
   ;;
+
+  let xpos x =
+    match x with
+    | Ast.TerminalExpr y -> Pos.xpos y.pos
+    | Ast.InvokeExpr y -> Pos.xpos y.pos
+    | Ast.BinOpExpr y -> Pos.xpos y.pos
+    | Ast.UnOpExpr y -> Pos.xpos y.pos
+    | Ast.IfExpr y -> Pos.xpos y.pos
+    | Ast.ElseIfExpr y -> Pos.xpos y.pos
+    | Ast.ElseExpr y -> Pos.xpos y.pos
+    | Ast.BlockExpr y -> Pos.xpos y.pos
+    | _ -> failwith @@ "Implement method to get expresison position."
+  ;;
 end
 
 module Stmt = struct
