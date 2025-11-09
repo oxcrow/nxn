@@ -9,8 +9,7 @@ end
 
 module Id = struct
   let value x = match x with Ast.Id y -> y.value
-  let loc x = match x with Ast.Id y -> y.loc
-  let xpos x = match x with Ast.Id y -> (Loc.lnum y.loc, Loc.cnum y.loc)
+  let xpos x = match x with Ast.Id y -> Pos.xpos y.pos
 end
 
 module Type = struct end

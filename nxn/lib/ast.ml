@@ -110,6 +110,6 @@ and traits =
   | NoneTrait
 
 and state = ConState | MutState | SetState
-and id = Id of { value : string; loc : loc }
+and id = Id of { value : string; pos : pos }
 (* and loc = Loc of { lnum : int; cnum : int } *)
 (* and pos = Pos of { start : loc; end' : loc } *)

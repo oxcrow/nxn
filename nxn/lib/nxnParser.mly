@@ -241,7 +241,7 @@ life:
   | l=id; BAR { l }
 
 id:
-  | loc=locate; i=IDVAL; { Ast.Id {value=i; loc=loc} }
+  | i=IDVAL; { Ast.Id {value=i; pos=(position $startpos $endpos)} }
 
 let locate == {
   let startpos: Lexing.position = $startpos in

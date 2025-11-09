@@ -182,7 +182,10 @@ let infer ast =
               let type' =
                 match GetEnv.File.var_type id env with
                 | Some type' -> type'
-                | None -> error loc (quote id ^ " does not exist in environment.")
+                | None ->
+                    error loc
+                      (quote id ^ " does not exist in environment."
+                      ^ errormsg (GetAst.File.filename ast) (GetAst.Id.xpos o.value))
               in
               type'
           | Ast.StructVal o ->
@@ -197,7 +200,10 @@ let infer ast =
                 match type' with
                 | Ast.FunctionType t -> (t.type', t.args)
                 | _ -> never loc "")
-            | None -> error loc (quote id ^ " does not exist in environment.")
+            | None ->
+                error loc
+                  (quote id ^ " does not exist in environment."
+                  ^ errormsg (GetAst.File.filename ast) (GetAst.Id.xpos o.value))
           in
           (* Validate that the function argument types match *)
           let _ =
