@@ -521,29 +521,52 @@ let compile_file file =
   let code = File.read_file_content file in
   let ast = parse code file in
   let tst = infer ast in
-  unit
+  true
 ;;
 
 (** Compile code and report error *)
 let compile file =
-  try compile_file file with
-  | Failure msg -> write msg
-  | exn -> write @@ Printexc.to_string exn
-  | _ -> todo loc "Unknown error raised."
+  let _success =
+    try compile_file file with
+    | Failure msg ->
+        write msg;
+        false
+    | exn ->
+        write @@ Printexc.to_string exn;
+        false
+    | _ ->
+        todo loc "Unknown error raised.";
+        false
+  in
+  unit
 ;;
 
-(** Generate executable *)
-let exe ir = unit
+(** Test if file can be compiled *)
+let pass file = compile file
+
+(** Test if file can not be compiled *)
+let fail file =
+  let success =
+    try compile_file file with
+    | Failure _ -> false
+    | exn -> false
+    | _ ->
+        todo loc "Unknown error raised.";
+        false
+  in
+  verify loc (success = false) "Code did not fail?"
+;;
 
 (** Run integration tests *)
 let validate () =
-  compile "test/pass/001-01.nxn" |> exe;
-  compile "test/pass/001-02.nxn" |> exe;
-  compile "test/pass/001-03.nxn" |> exe;
-  compile "test/pass/001-04.nxn" |> exe;
-  compile "test/pass/002-01.nxn" |> exe;
-  compile "test/pass/002-02.nxn" |> exe;
-  compile "test/pass/002-03.nxn" |> exe;
+  fail "test/fail/001-01.nxn";
+  pass "test/pass/001-01.nxn";
+  pass "test/pass/001-02.nxn";
+  pass "test/pass/001-03.nxn";
+  pass "test/pass/001-04.nxn";
+  pass "test/pass/002-01.nxn";
+  pass "test/pass/002-02.nxn";
+  pass "test/pass/002-03.nxn";
   unit
 ;;
 
