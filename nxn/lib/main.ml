@@ -572,6 +572,8 @@ let fail file =
 (** Run integration tests *)
 let validate () =
   fail "test/fail/001-01.nxn";
+  pass "test/fail/002-01.nxn";
+
   pass "test/pass/001-01.nxn";
   pass "test/pass/001-02.nxn";
   pass "test/pass/001-03.nxn";
@@ -579,6 +581,7 @@ let validate () =
   pass "test/pass/002-01.nxn";
   pass "test/pass/002-02.nxn";
   pass "test/pass/002-03.nxn";
+  pass "test/pass/002-04.nxn";
   unit
 ;;
 
