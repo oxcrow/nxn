@@ -15,6 +15,12 @@ let printast ast = write ("+ " ^ Ast.show_file ast ^ "\n")
 (** Evalulate error message *)
 let errormsg filename pos =
   let lnum, cnum = pos in
+
+  (* To help debug cases where we evaluate the error message multiple times.
+     We want to identify and prevent these cases because this operation is
+     costly (due to reading source code from file) *)
+  if false then write @@ "ErrorMsg:" ^ string_of_int lnum ^ ", " ^ string_of_int cnum;
+
   let line0 =
     "\n (Around approximate position: " ^ "(Line: " ^ string_of_int lnum ^ ", Column: "
     ^ string_of_int cnum ^ ") of File: \"" ^ filename ^ "\")\n"
@@ -445,20 +451,20 @@ let infer ast =
         (env, stmt)
     | Ast.BlockStmt s ->
         let block = infer_block env s.block in
-        verify loc
-          (infer_block_type block = Ast.UnitType)
-          ("Block statements can not return values with set statements."
-          ^ errormsg (GetAst.File.filename ast)
-              (match block with
-              | Ast.Block b -> (
-                  let sets =
-                    List.filter
-                      (fun s -> match s with Ast.SetStmt _ -> true | _ -> false)
-                      b.stmts
-                  in
-                  match List.length sets with
-                  | 1 -> GetAst.Stmt.xpos (List.nth sets 0)
-                  | _ -> (0, 0))));
+        if infer_block_type block <> Ast.UnitType then
+          error loc
+            ("Block statements can not return values with set statements."
+            ^ errormsg (GetAst.File.filename ast)
+                (match block with
+                | Ast.Block b -> (
+                    let sets =
+                      List.filter
+                        (fun s -> match s with Ast.SetStmt _ -> true | _ -> false)
+                        b.stmts
+                    in
+                    match List.length sets with
+                    | 1 -> GetAst.Stmt.xpos (List.nth sets 0)
+                    | _ -> (0, 0))));
         let stmt = Ast.BlockStmt { block; pos = s.pos } in
         (env, stmt)
     | _ -> todo loc "Infer statement."
