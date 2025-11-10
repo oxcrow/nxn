@@ -138,6 +138,11 @@ let infer ast =
       | Ast.Var v ->
           let id = GetAst.Id.value v.id in
           let type' = v.type' in
+          assure loc
+            (GetEnv.File.var_type id env = None)
+            (fun _ ->
+              "Shadowing variables is not allowed."
+              ^ errormsg (GetAst.File.filename ast) (GetAst.Id.xpos v.id));
           Env.Add.File.var_type id type' env
     in
     match vars with
@@ -566,6 +571,7 @@ let fail file =
 (** Run integration tests *)
 let validate () =
   fail "test/fail/001-01.nxn";
+  fail "test/fail/001-02.nxn";
   pass "test/fail/002-01.nxn";
 
   pass "test/pass/001-01.nxn";
