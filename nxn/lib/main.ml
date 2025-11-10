@@ -13,7 +13,7 @@ external loc : string = "%loc_LOC"
 let printast ast = write ("+ " ^ Ast.show_file ast ^ "\n")
 
 (** Evalulate error message *)
-let errormsg filename pos =
+let errormsg filename pos msg =
   let lnum, cnum = pos in
 
   (* To help debug cases where we evaluate the error message multiple times.
@@ -22,8 +22,8 @@ let errormsg filename pos =
   if false then write @@ "ErrorMsg:" ^ string_of_int lnum ^ ", " ^ string_of_int cnum;
 
   let line0 =
-    "\n (Around approximate position: " ^ "(Line: " ^ string_of_int lnum ^ ", Column: "
-    ^ string_of_int cnum ^ ") of File: \"" ^ filename ^ "\")\n"
+    msg ^ "\n (Around approximate position: " ^ "(Line: " ^ string_of_int lnum
+    ^ ", Column: " ^ string_of_int cnum ^ ") of File: \"" ^ filename ^ "\")\n"
   in
 
   let lines = String.split_on_char '\n' (File.read_file_content filename) in
@@ -41,7 +41,7 @@ let errormsg filename pos =
 
   let line1 = line (lnum - 2) ^ "\n" in
   let line2 = line (lnum - 1) ^ "\n" in
-  let line3 = red ^ line (lnum - 0) ^ black ^ "\n" in
+  let line3 = red ^ line (lnum - 0) ^ " <<< " ^ msg ^ black ^ "\n" in
   let line4 = line (lnum + 1) ^ "\n" in
   let line5 = line (lnum + 2) ^ "\n" in
 
@@ -64,12 +64,16 @@ let parse code filename =
     try NxnParser.file NxnLexer.token buf with
     | NxnParser.Error ->
         let pos = errorpos buf in
-        let reason = errormsg filename pos in
-        error loc ("Parser error: " ^ reason)
+        let reason =
+          errormsg filename pos "Parser error.(Error could also be from lines above.)"
+        in
+        error loc reason
     | Failure msg ->
         let pos = errorpos buf in
-        let reason = errormsg filename pos in
-        error loc ("Parser error: " ^ reason ^ ", With message: " ^ msg)
+        let reason =
+          errormsg filename pos "Parser error.(Error could also be from lines above.)"
+        in
+        error loc (reason ^ ", With message: " ^ msg)
   in
 
   let ast =
@@ -112,7 +116,7 @@ let infer ast =
       List.iter
         (fun (n, xpos) ->
           if n > 1 then
-            warn loc ("Multiple occurances of identifier. " ^ errormsg filename xpos))
+            warn loc (errormsg filename xpos "Multiple occurances of identifier."))
         counts;
       List.iter
         (fun (n, _) -> if n > 1 then error loc "Multiple occurances of identifier.")
@@ -141,8 +145,8 @@ let infer ast =
           assure loc
             (GetEnv.File.var_type id env = None)
             (fun _ ->
-              "Shadowing variables is not allowed."
-              ^ errormsg (GetAst.File.filename ast) (GetAst.Id.xpos v.id));
+              errormsg (GetAst.File.filename ast) (GetAst.Id.xpos v.id)
+                "Shadowing variables is not allowed.");
           Env.Add.File.var_type id type' env
     in
     match vars with
@@ -195,8 +199,8 @@ let infer ast =
                 | Some type' -> type'
                 | None ->
                     error loc
-                      (quote id ^ " does not exist in environment."
-                      ^ errormsg (GetAst.File.filename ast) (GetAst.Id.xpos o.value))
+                      (errormsg (GetAst.File.filename ast) (GetAst.Id.xpos o.value)
+                         ("Identifier " ^ quote id ^ " does not exist in environment."))
               in
               type'
           | Ast.StructVal o ->
@@ -213,16 +217,16 @@ let infer ast =
                 | _ -> never loc "")
             | None ->
                 error loc
-                  (quote id ^ " does not exist in environment."
-                  ^ errormsg (GetAst.File.filename ast) (GetAst.Id.xpos o.value))
+                  (errormsg (GetAst.File.filename ast) (GetAst.Id.xpos o.value)
+                     ("Function " ^ quote id ^ " does not exist in environment."))
           in
           (* Validate that the function argument types match *)
           assure loc
             (List.map (fun arg -> infer_expr_type env arg) o.args
             = List.map simplify_type argtypes)
             (fun _ ->
-              "Function argument types don't match"
-              ^ errormsg (GetAst.File.filename ast) (GetAst.Expr.xpos expr));
+              errormsg (GetAst.File.filename ast) (GetAst.Expr.xpos expr)
+                "Function argument types don't match.");
           type'
       | Ast.BinOpExpr o ->
           let match_types env lvalue rvalue =
@@ -452,18 +456,18 @@ let infer ast =
         let block = infer_block env s.block in
         if infer_block_type block <> Ast.UnitType then
           error loc
-            ("Block statements can not return values with set statements."
-            ^ errormsg (GetAst.File.filename ast)
-                (match block with
-                | Ast.Block b -> (
-                    let sets =
-                      List.filter
-                        (fun s -> match s with Ast.SetStmt _ -> true | _ -> false)
-                        b.stmts
-                    in
-                    match List.length sets with
-                    | 1 -> GetAst.Stmt.xpos (List.nth sets 0)
-                    | _ -> (0, 0))));
+            (errormsg (GetAst.File.filename ast)
+               (match block with
+               | Ast.Block b -> (
+                   let sets =
+                     List.filter
+                       (fun s -> match s with Ast.SetStmt _ -> true | _ -> false)
+                       b.stmts
+                   in
+                   match List.length sets with
+                   | 1 -> GetAst.Stmt.xpos (List.nth sets 0)
+                   | _ -> (0, 0)))
+               "Block statements can not return values with set statements.");
         let stmt = Ast.BlockStmt { block; pos = s.pos } in
         (env, stmt)
     | _ -> todo loc "Infer statement."
