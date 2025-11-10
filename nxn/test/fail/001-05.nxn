@@ -1,0 +1,8 @@
+// Validate that only lvalue expressions can be assigned values
+
+fn main() i32 {
+    let mut x = 0;
+    x = 1;
+    x+1 = 2;        // ERROR: x+1 is not an lvalue expression, thus can not be assigned value.
+    return 0;
+}

@@ -428,6 +428,24 @@ let infer ast =
           (type', expr)
     in
     (type', expr)
+  (* Infer lvalue expressions *)
+  and infer_lvalue_expr env vars type' =
+    let validate_lvalue_term term = match term with Ast.IdVal _ -> true | _ -> false in
+    let validate_lvalue_unop op = match op with Ast.DerefOp _ -> true | _ -> false in
+    let validate_lvalue_expr expr =
+      let sucess =
+        match expr with
+        | Ast.TerminalExpr o -> validate_lvalue_term o.value
+        | Ast.UnOpExpr o -> validate_lvalue_unop o.op
+        | _ -> false
+      in
+      assure loc sucess (fun _ ->
+          errormsg (GetAst.File.filename ast) (GetAst.Expr.xpos expr)
+            "Only lvalue expressions can be assinged values.")
+    in
+    List.iter validate_lvalue_expr vars;
+    unit;
+    unit
   (* Infer statement *)
   and infer_stmt env stmt =
     match stmt with
@@ -443,7 +461,11 @@ let infer ast =
         let stmt = SetAst.Stmt.with_expr stmt expr in
         (env, stmt)
     | Ast.AssignStmt s ->
-        (* TODO: Implement assign statement *)
+        (* BUG: Assign statements is incomplete!
+           + Prevent assignment to immutable variables
+           + Prevent assignment to varibles without dereferencing. *)
+        let type', expr = infer_expr env s.expr in
+        let vars = infer_lvalue_expr env s.vars type' in
         (env, stmt)
     | Ast.ReturnStmt s ->
         let _, expr = infer_expr env s.expr in
@@ -583,6 +605,7 @@ let validate () =
   fail "test/fail/001-02.nxn";
   fail "test/fail/001-03.nxn";
   fail "test/fail/001-04.nxn";
+  fail "test/fail/001-05.nxn";
   pass "test/fail/002-01.nxn";
 
   pass "test/pass/001-01.nxn";
