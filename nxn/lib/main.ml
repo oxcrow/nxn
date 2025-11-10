@@ -158,6 +158,11 @@ let infer ast =
 
   let rec infer_vars vars type' =
     let infer_var var type' =
+      let expected_type = GetAst.Var.type' var in
+      if expected_type <> Ast.NoneType && type' <> Ast.UndefinedType then
+        assure loc (expected_type = type') (fun _ ->
+            errormsg (GetAst.File.filename ast) (GetAst.Var.xpos var)
+              "Inferred expression type does not match expected variable type.");
       match var with Ast.Var v -> Ast.Var { id = v.id; state = v.state; type' }
     in
     let vars =
@@ -187,7 +192,7 @@ let infer ast =
       match expr with
       | Ast.TerminalExpr term -> (
           match term.value with
-          | Ast.UndefinedVal -> Ast.NoneType
+          | Ast.UndefinedVal -> Ast.UndefinedType
           | Ast.UnitVal -> Ast.UnitType
           | Ast.BoolVal _ -> Ast.BoolType
           | Ast.IntVal _ -> Ast.IntType
@@ -576,6 +581,8 @@ let fail file =
 let validate () =
   fail "test/fail/001-01.nxn";
   fail "test/fail/001-02.nxn";
+  fail "test/fail/001-03.nxn";
+  fail "test/fail/001-04.nxn";
   pass "test/fail/002-01.nxn";
 
   pass "test/pass/001-01.nxn";

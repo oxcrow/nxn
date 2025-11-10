@@ -14,6 +14,11 @@ end
 
 module Type = struct end
 
+module Var = struct
+  let type' x = match x with Ast.Var y -> y.type'
+  let xpos x = match x with Ast.Var y -> Id.xpos y.id
+end
+
 module Expr = struct
   let type' x =
     match x with

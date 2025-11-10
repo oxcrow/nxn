@@ -86,6 +86,7 @@ and terminals =
 and vars = Var of { id : id; state : state; type' : types } | NoneVar
 
 and types =
+  | UndefinedType
   | UnitType
   | BoolType
   | IntType

@@ -1,0 +1,9 @@
+// Prevent a value of wrong type from being assigned to a variable of specified type.
+
+fn main() i32 {
+    let w: float, v: int = .{7.7, 7};   // OK: The tuple values are destructured correctly.
+    let x: float = undefined;           // OK: Undefined values can be assigned to any variable.
+    let y: float = 7.7;                 // OK: Floats can be assigned to float variables.
+    let z: float = 7;                   // ERROR: Integers can not be implicitly assigned to float variable.
+    return 0;
+}
