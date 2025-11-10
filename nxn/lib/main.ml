@@ -130,7 +130,8 @@ let infer ast =
     let functions = match ast with Ast.File f -> envfns f.entities |> validate in
 
     let env =
-      Env.File { name = "x.nxn"; functions; structs = []; enums = []; vars = [] }
+      Env.File
+        { name = "x.nxn"; functions; structs = []; enums = []; vars = []; varx = [] }
     in
     env
   in
@@ -142,11 +143,20 @@ let infer ast =
       | Ast.Var v ->
           let id = GetAst.Id.value v.id in
           let type' = v.type' in
-          assure loc
-            (GetEnv.File.var_type id env = None)
-            (fun _ ->
-              errormsg (GetAst.File.filename ast) (GetAst.Id.xpos v.id)
-                "Shadowing variables is not allowed.");
+          let shadow = v.shadow in
+          let found_prev_var, found_prev_shadow =
+            let found_var =
+              match GetEnv.File.var_type id env with Some _ -> true | None -> false
+            in
+            let found_shadow = GetEnv.File.shadow id env in
+            (found_var, found_shadow)
+          in
+          (* Only varibles previously marked with ~ (tilde), can be shadowed. *)
+          if found_prev_var = true then
+            assure loc (found_prev_shadow = true) (fun _ ->
+                errormsg (GetAst.File.filename ast) (GetAst.Id.xpos v.id)
+                  "Shadowing variables defined without shadow mark is not allowed.");
+          let env = Env.Add.File.var id (Env.Var { type'; shadow }) env in
           Env.Add.File.var_type id type' env
     in
     match vars with
@@ -163,7 +173,8 @@ let infer ast =
         assure loc (expected_type = type') (fun _ ->
             errormsg (GetAst.File.filename ast) (GetAst.Var.xpos var)
               "Inferred expression type does not match expected variable type.");
-      match var with Ast.Var v -> Ast.Var { id = v.id; state = v.state; type' }
+      match var with
+      | Ast.Var v -> Ast.Var { id = v.id; state = v.state; shadow = v.shadow; type' }
     in
     let vars =
       match vars with
@@ -612,6 +623,7 @@ let validate () =
   pass "test/pass/001-02.nxn";
   pass "test/pass/001-03.nxn";
   pass "test/pass/001-04.nxn";
+  pass "test/pass/001-05.nxn";
   pass "test/pass/002-01.nxn";
   pass "test/pass/002-02.nxn";
   pass "test/pass/002-03.nxn";

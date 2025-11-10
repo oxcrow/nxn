@@ -1,4 +1,4 @@
-type record = Record of { id : string; type' : Ast.types }
+type vars = Var of { type' : Ast.types; shadow : bool }
 
 type file =
   | File of {
@@ -7,6 +7,7 @@ type file =
       structs : (string * Ast.types) list;
       enums : (string * Ast.types) list;
       vars : (string * Ast.types) list;
+      varx : (string * vars) list;
     }
 
 type module' = Module of { name : string; files : file list }
@@ -24,6 +25,7 @@ module Add = struct
               structs = x.structs;
               enums = x.enums;
               vars = x.vars;
+              varx = x.varx;
             }
     ;;
 
@@ -37,6 +39,21 @@ module Add = struct
               structs = x.structs;
               enums = x.enums;
               vars = (id, type') :: x.vars;
+              varx = x.varx;
+            }
+    ;;
+
+    let var id var env =
+      match env with
+      | File x ->
+          File
+            {
+              name = x.name;
+              functions = x.functions;
+              structs = x.structs;
+              enums = x.enums;
+              vars = x.vars;
+              varx = (id, var) :: x.varx;
             }
     ;;
   end

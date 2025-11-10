@@ -71,6 +71,7 @@
 %token EXCLAMATION
 %token AMPERSAND
 %token HASH
+%token TILDE
 %token PERCENT
 %token DOLLAR
 %token EQUAL
@@ -208,7 +209,11 @@ bools:
   | FALSE { false }
 
 vars:
-  | s=state; i=id; t=typedec; { Ast.Var {id=i; state=s; type'=t;} }
+  | s=state; sh=shadow; i=id; t=typedec; { Ast.Var {id=i; state=s; shadow=sh; type'=t;} }
+
+shadow:
+  |  { false }
+  | TILDE { true }
 
 state:
   | { Ast.ConState }

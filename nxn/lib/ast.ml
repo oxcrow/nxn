@@ -83,7 +83,7 @@ and terminals =
   | IdVal of { value : id }
   | StructVal of { value : expressions list }
 
-and vars = Var of { id : id; state : state; type' : types } | NoneVar
+and vars = Var of { id : id; state : state; shadow : bool; type' : types } | NoneVar
 
 and types =
   | UndefinedType

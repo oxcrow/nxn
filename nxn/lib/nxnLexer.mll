@@ -71,6 +71,7 @@ rule token = parse
   | "!" { NxnParser.EXCLAMATION }
   | "&" { NxnParser.AMPERSAND }
   | "#" { NxnParser.HASH }
+  | "~" { NxnParser.TILDE }
   | "%" { NxnParser.PERCENT }
   | "$" { NxnParser.DOLLAR }
   | "=" { NxnParser.EQUAL }
