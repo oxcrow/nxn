@@ -27,5 +27,5 @@ fn max(x: &a|int, y: &a|int) &a|int {
     return x;
 }
 
-fn stress(x: &&b|%a|()) {
+fn stress(x: &&b|@a|()) {
 }

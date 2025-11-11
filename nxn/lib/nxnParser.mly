@@ -166,7 +166,7 @@ postfix:
         { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
     | x=postfix; AMPERSAND MUT %prec UMUTREF
         { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=postfix; PERCENT %prec UMUTREF
+    | x=postfix; AT %prec UMUTREF
         { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
     | x=postfix; HASH %prec UDEREF
         { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(pos $loc)} }
@@ -258,7 +258,7 @@ types:
     | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
     | AMPERSAND l=option(life); t=types; { Ast.ConRefType {life=l; types=t} }
     | MUT AMPERSAND l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
-    | PERCENT l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
+    | AT l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
 
 life:
     | l=id; BAR { l }

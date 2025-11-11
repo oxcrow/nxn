@@ -9,10 +9,10 @@ fn main() i32 {
     swap3(a&mut, b&mut);
     swap4(a&mut, b&mut);
 
-    swap1(a%, b%);
-    swap2(a%, b%);
-    swap3(a%, b%);
-    swap4(a%, b%);
+    swap1(a@, b@);
+    swap2(a@, b@);
+    swap3(a@, b@);
+    swap4(a@, b@);
 
     return a;
 }
@@ -24,7 +24,7 @@ fn swap1(a: mut&int, b: mut&int) {
     b# = bvalue;
 }
 
-fn swap2(a: %int, b: %int) {
+fn swap2(a: @int, b: @int) {
     let avalue = a#;
     let bvalue = b#;
     a# = avalue;
@@ -38,7 +38,7 @@ fn swap3(a: mut&a|int, b: mut&a|int) {
     b# = bvalue;
 }
 
-fn swap4(a: %a|int, b: %a|int) {
+fn swap4(a: @a|int, b: @a|int) {
     let avalue = a#;
     let bvalue = b#;
     a# = avalue;
