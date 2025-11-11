@@ -49,17 +49,18 @@ rule token = parse
   | "i32" { NxnParser.I32 }
   | "u32" { NxnParser.U32 }
   | "float" { NxnParser.FLOAT }
+  | "not" { NxnParser.NOT }
   | "true" { NxnParser.TRUE }
   | "false" { NxnParser.FALSE }
   | "undefined" { NxnParser.UNDEFINED }
   | "as" { NxnParser.AS }
 
   | "==" { NxnParser.EQ }
-  | "!=" { NxnParser.NE }
-  | "+<=" { NxnParser.LE }
-  | "+>=" { NxnParser.GE }
-  | "+<" { NxnParser.LT }
-  | "+>" { NxnParser.GT }
+  | "=/=" { NxnParser.NE }
+  | "<=" { NxnParser.LE }
+  | ">=" { NxnParser.GE }
+  | "<" { NxnParser.LT }
+  | ">" { NxnParser.GT }
 
   | "@" { NxnParser.AT }
   | ";" { NxnParser.SEMICOLON }

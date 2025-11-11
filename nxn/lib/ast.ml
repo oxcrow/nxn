@@ -72,7 +72,7 @@ and binop =
   | GtOp
   | NoneOp
 
-and unop = PosOp | NegOp | NotOp | TryOp | ConRefOp | MutRefOp | DerefOp
+and unop = PosOp | NegOp | NotOp | TryOp | MoveOp | ConRefOp | MutRefOp | DerefOp
 
 and terminals =
   | UndefinedVal

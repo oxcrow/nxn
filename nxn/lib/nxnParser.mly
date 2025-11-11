@@ -54,6 +54,7 @@
 %token I32
 %token U32
 %token FLOAT
+%token NOT
 %token TRUE
 %token FALSE
 %token UNDEFINED
@@ -105,7 +106,7 @@
 %left PLUS MINUS
 %left STAR SLASH
 %nonassoc UPLUS UMINUS
-%nonassoc UCONREF UMUTREF UDEREF
+%nonassoc UTRY UMOVE UCONREF UMUTREF UDEREF
 (* Highest priority at the bottom *)
 
 %start file
@@ -148,23 +149,6 @@ statements:
         { Ast.BlockStmt {block=x; pos=(pos $loc)} }
     | x=ifstmts; { x }
 
-ifstmts:
-    | IF c=expressions; b=blocks; o=option(elsebranch);
-        { Ast.IfStmt{expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType; pos=(pos $loc)}; pos=(pos $loc)} }
-
-ifexprs:
-    | IF c=expressions; b=blocks; o=option(elsebranch);
-        { Ast.IfExpr {cond=c; block=b; other=o; is_stmt=false; type'=Ast.NoneType; pos=(pos $loc)} }
-elseifexprs:
-    | ELSE IF c=expressions; b=blocks; o=option(elsebranch);
-        { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType; pos=(pos $loc)} }
-elseexprs:
-    | ELSE b=blocks; { Ast.ElseExpr {block=b; type'=Ast.NoneType; pos=(pos $loc)} }
-
-elsebranch:
-    | x=elseifexprs; { x }
-    | x=elseexprs; { x }
-
 expressions:
      | LPAREN x=expressions; RPAREN { x }
      | AT x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(pos $loc)} }
@@ -174,32 +158,42 @@ expressions:
 
 postfix:
     | x=exprs; { x }
-    | x=exprs; QUESTION
+    | x=postfix; QUESTION %prec UTRY
         { Ast.UnOpExpr {value=x; op=Ast.TryOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=postfix; EXCLAMATION %prec UMOVE
+        { Ast.UnOpExpr {value=x; op=Ast.MoveOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=postfix; AMPERSAND %prec UCONREF
+        { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=postfix; AMPERSAND MUT %prec UMUTREF
+        { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=postfix; PERCENT %prec UMUTREF
+        { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=postfix; CARET %prec UDEREF
+        { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(pos $loc)} }
 
 binops:
-    | x=expressions; PLUS  y=expressions;
+    | x=expressions; PLUS  y=expressions; %prec PLUS
         { Ast.BinOpExpr {lvalue=x; op=Ast.AddOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=expressions; MINUS y=expressions;
+    | x=expressions; MINUS y=expressions; %prec MINUS
         { Ast.BinOpExpr {lvalue=x; op=Ast.SubOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=expressions; STAR  y=expressions;
+    | x=expressions; STAR  y=expressions; %prec STAR
         { Ast.BinOpExpr {lvalue=x; op=Ast.MulOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=expressions; SLASH y=expressions;
+    | x=expressions; SLASH y=expressions; %prec SLASH
         { Ast.BinOpExpr {lvalue=x; op=Ast.DivOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
     | x=conds; { x }
 
 conds:
-    | x=expressions; EQ y=expressions;
+    | x=expressions; EQ y=expressions; %prec EQ
         { Ast.BinOpExpr {lvalue=x; op=Ast.EqOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=expressions; NE y=expressions;
+    | x=expressions; NE y=expressions; %prec NE
         { Ast.BinOpExpr {lvalue=x; op=Ast.NeOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=expressions; LE y=expressions;
+    | x=expressions; LE y=expressions; %prec LE
         { Ast.BinOpExpr {lvalue=x; op=Ast.LeOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=expressions; GE y=expressions;
+    | x=expressions; GE y=expressions; %prec GE
         { Ast.BinOpExpr {lvalue=x; op=Ast.GeOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=expressions; LT y=expressions;
+    | x=expressions; LT y=expressions; %prec LT
         { Ast.BinOpExpr {lvalue=x; op=Ast.LtOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=expressions; GT y=expressions;
+    | x=expressions; GT y=expressions; %prec GT
         { Ast.BinOpExpr {lvalue=x; op=Ast.GtOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
 
 unops:
@@ -207,19 +201,8 @@ unops:
         { Ast.UnOpExpr {value=x; op=Ast.PosOp; type'=Ast.NoneType; pos=(pos $loc)} }
     | MINUS x=expressions; %prec UMINUS
         { Ast.UnOpExpr {value=x; op=Ast.NegOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | EXCLAMATION x=expressions; %prec NOT
+    | NOT x=expressions; %prec NOT
         { Ast.UnOpExpr {value=x; op=Ast.NotOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=refs; { x }
-
-refs:
-    | AMPERSAND x=expressions; %prec UCONREF
-        { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | MUT AMPERSAND x=expressions; %prec UMUTREF
-        { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | STAR x=expressions; %prec UMUTREF
-        { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | CARET x=expressions; %prec UDEREF
-        { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(pos $loc)} }
 
 exprs:
     | x=entities;
@@ -275,13 +258,28 @@ types:
     | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
     | AMPERSAND l=option(life); t=types; { Ast.ConRefType {life=l; types=t} }
     | MUT AMPERSAND l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
-    | STAR l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
+    | PERCENT l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
 
 life:
     | l=id; BAR { l }
 
 id:
     | i=IDVAL; { Ast.Id {value=i; pos=(pos $loc)} }
+
+ifstmts:
+    | IF c=expressions; b=blocks; o=option(elsebranch);
+        { Ast.IfStmt{expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType; pos=(pos $loc)}; pos=(pos $loc)} }
+ifexprs:
+    | IF c=expressions; b=blocks; o=option(elsebranch);
+        { Ast.IfExpr {cond=c; block=b; other=o; is_stmt=false; type'=Ast.NoneType; pos=(pos $loc)} }
+elseifexprs:
+    | ELSE IF c=expressions; b=blocks; o=option(elsebranch);
+        { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType; pos=(pos $loc)} }
+elseexprs:
+    | ELSE b=blocks; { Ast.ElseExpr {block=b; type'=Ast.NoneType; pos=(pos $loc)} }
+elsebranch:
+    | x=elseifexprs; { x }
+    | x=elseexprs; { x }
 
 seplist(SEP, NODE):
     | { [] }

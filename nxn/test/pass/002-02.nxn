@@ -3,8 +3,8 @@
 fn main() i32 {
     let x = 9;
     let y = 8;
-    let z = borrow(&x, &y);
-    let w = ^z;
+    let z = borrow(x&, y&);
+    let w = z^;
     return w;
 }
 

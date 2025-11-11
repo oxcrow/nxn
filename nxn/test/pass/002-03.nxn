@@ -3,13 +3,13 @@
 fn main() i32 {
     let x = 9;
     let y = 8;
-    let z = largest(&x, &y);
-    let w = ^z;
+    let z = largest(x&, y&);
+    let w = z^;
     return w;
 }
 
 fn largest(x: &a|int, y: &a|int) &a|int {
-    if x +> y {
+    if x > y {
         return x;
     } else {
         return y;
@@ -17,5 +17,16 @@ fn largest(x: &a|int, y: &a|int) &a|int {
     return x;
 }
 
-fn stress(x: &&b|*a|()) {
+fn max(x: &a|int, y: &a|int) &a|int {
+    if x =/= y {
+        if not x < y {
+            return x;
+        } else {
+            return y;
+        }
+    }
+    return x;
+}
+
+fn stress(x: &&b|%a|()) {
 }
