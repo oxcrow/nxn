@@ -9,6 +9,6 @@ fn main() i32 {
         x = a&;     // WARN: a does not live long enough! But it's okay, since it's not used!
         x = y&;     // OK:   Since y lives long enough!
     }
-    let z = x^;     // OK:   Since y, which is assinged to x, lives long enough!
+    let z = x#;     // OK:   Since y, which is assinged to x, lives long enough!
     return z;
 }

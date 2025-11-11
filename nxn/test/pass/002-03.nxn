@@ -4,8 +4,7 @@ fn main() i32 {
     let x = 9;
     let y = 8;
     let z = largest(x&, y&);
-    let w = z^;
-    return w;
+    return z#;
 }
 
 fn largest(x: &a|int, y: &a|int) &a|int {

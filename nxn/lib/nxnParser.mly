@@ -168,7 +168,7 @@ postfix:
         { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
     | x=postfix; PERCENT %prec UMUTREF
         { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=postfix; CARET %prec UDEREF
+    | x=postfix; HASH %prec UDEREF
         { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(pos $loc)} }
 
 binops:

@@ -7,5 +7,5 @@ fn main() i32 {
 }
 
 fn borrow(x: &int) int {
-    return x^;
+    return x#;
 }
