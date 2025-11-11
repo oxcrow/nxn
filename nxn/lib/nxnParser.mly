@@ -151,7 +151,7 @@ statements:
 
 expressions:
      | LPAREN x=expressions; RPAREN { x }
-     | AT x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(pos $loc)} }
+     | DOLLAR x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(pos $loc)} }
      | x=postfix; { x }
      | x=binops; { x }
      | x=unops; { x }
@@ -211,7 +211,7 @@ exprs:
         { Ast.TerminalExpr {value=x; type'=Ast.NoneType; pos=(pos $loc)} }
     | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN
         { Ast.InvokeExpr {value=i; args=a; type'=Ast.NoneType; pos=(pos $loc)} }
-    | AT x=ifexprs; { x }
+    | DOLLAR x=ifexprs; { x }
 
 terminals:
     | UNDEFINED { Ast.UndefinedVal }
