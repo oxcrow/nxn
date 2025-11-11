@@ -7,7 +7,7 @@
 (env
  (dev
   (flags
-   (:standard -w -A))))
+   (:standard -w -26-27)))) ; use -A to disable all warnings
 
 (library
  (name nxn)

@@ -124,7 +124,7 @@ entities:
             id=i;
             args=a;
             type'=(Ast.FunctionType{
-                args=(List.map (fun var -> match var with | Ast.Var v -> v.type') a);
+                args=(List.map (fun var -> match var with | Ast.Var v -> v.type' | Ast.NoneVar -> Ast.NoneType) a);
                 type'=t});
             block=b;
             pos=(pos $loc)

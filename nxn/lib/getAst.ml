@@ -1,3 +1,8 @@
+open Error.Failure
+
+(* Location *)
+external loc : string = "%loc_LOC"
+
 module Loc = struct
   let lnum x = match x with Ast.Loc y -> y.lnum
   let cnum x = match x with Ast.Loc y -> y.cnum
@@ -15,8 +20,17 @@ end
 module Type = struct end
 
 module Var = struct
-  let type' x = match x with Ast.Var y -> y.type'
-  let xpos x = match x with Ast.Var y -> Id.xpos y.id
+  let type' x =
+    match x with
+    | Ast.Var y -> y.type'
+    | NoneVar -> never loc "NoneVar is not a valid variable."
+  ;;
+
+  let xpos x =
+    match x with
+    | Ast.Var y -> Id.xpos y.id
+    | NoneVar -> never loc "NoneVar is not a valid variable"
+  ;;
 end
 
 module Expr = struct
@@ -61,9 +75,21 @@ module Expr = struct
 end
 
 module Stmt = struct
-  let vars x = match x with Ast.LetStmt y -> y.vars
-  let type' x = match x with Ast.SetStmt y -> Expr.type' y.expr
-  let xpos x = match x with Ast.SetStmt y -> Pos.xpos y.pos
+  let vars x =
+    match x with
+    | Ast.LetStmt y -> y.vars
+    | _ -> never loc "Only let statements can have variables"
+  ;;
+
+  let type' x =
+    match x with Ast.SetStmt y -> Expr.type' y.expr | _ -> todo loc "Type for statement"
+  ;;
+
+  let xpos x =
+    match x with
+    | Ast.SetStmt y -> Pos.xpos y.pos
+    | _ -> todo loc "Position for statement"
+  ;;
 end
 
 module Block = struct
@@ -72,7 +98,10 @@ end
 
 module Entity = struct
   let xpos x =
-    match x with Ast.Function y -> Id.xpos y.id | Ast.Struct y -> Id.xpos y.id
+    match x with
+    | Ast.Function y -> Id.xpos y.id
+    | Ast.Struct y -> Id.xpos y.id
+    | _ -> todo loc "Position for entity"
   ;;
 end
 

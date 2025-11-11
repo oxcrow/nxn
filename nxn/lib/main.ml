@@ -1,5 +1,4 @@
 open Error.Failure
-open Error.Unwrap
 open Utils.String
 open Utils.Tuple
 
@@ -84,6 +83,7 @@ let parse code filename =
 
 (** Type infer AST nodes *)
 let infer ast =
+  let filename = GetAst.File.filename ast in
   (* Create environment *)
   let envir ast =
     (* Create environment record list of functions *)
@@ -117,9 +117,6 @@ let infer ast =
         (fun (n, xpos) ->
           if n > 1 then
             warn loc (errormsg filename xpos "Multiple occurances of identifier."))
-        counts;
-      List.iter
-        (fun (n, _) -> if n > 1 then error loc "Multiple occurances of identifier.")
         counts;
 
       (* Remove position from records *)
@@ -158,6 +155,7 @@ let infer ast =
                   "Shadowing variables defined without shadow mark is not allowed.");
           let env = Env.Add.File.var id (Env.Var { type'; shadow }) env in
           Env.Add.File.var_type id type' env
+      | Ast.NoneVar -> never loc "NoneVar can not be added to the environment."
     in
     match vars with
     | [] -> env
@@ -166,7 +164,7 @@ let infer ast =
         extend_env env tl
   in
 
-  let rec infer_vars vars type' =
+  let infer_vars vars type' =
     let infer_var var type' =
       let expected_type = GetAst.Var.type' var in
       if expected_type <> Ast.NoneType && type' <> Ast.UndefinedType then
@@ -175,20 +173,27 @@ let infer ast =
               "Inferred expression type does not match expected variable type.");
       match var with
       | Ast.Var v -> Ast.Var { id = v.id; state = v.state; shadow = v.shadow; type' }
+      | Ast.NoneVar -> never loc "Nonevar can not be inferred."
     in
     let vars =
       match vars with
       | [] -> never loc "No variables exist to infer."
       | [ var ] -> [ infer_var var type' ]
       | vars ->
-          let data = List.combine vars (match type' with Ast.StructType s -> s.types) in
+          let data =
+            List.combine vars
+              (match type' with
+              | Ast.StructType s -> s.types
+              | _ -> never loc "Only struct types can be combined?")
+          in
           let vars = List.map (fun (v, s) -> infer_var v s) data in
           vars
     in
     vars
   in
 
-  let rec simplify_type type' =
+  (* Simplify types and remove differences, so they can be compared *)
+  let simplify_type type' =
     let type' =
       match type' with
       | Ast.ConRefType t -> Ast.ConRefType { life = None; types = t.types }
@@ -198,6 +203,7 @@ let infer ast =
     type'
   in
 
+  (* Infer expression type *)
   let rec infer_expr_type env expr =
     let type' =
       match expr with
@@ -272,13 +278,18 @@ let infer ast =
             | Ast.PosOp -> value_type
             | Ast.NegOp -> value_type
             | Ast.NotOp -> value_type
+            | Ast.TryOp -> value_type
+            | Ast.MoveOp -> value_type
             | Ast.ConRefOp -> Ast.ConRefType { life = None; types = value_type }
             | Ast.MutRefOp -> Ast.MutRefType { life = None; types = value_type }
             | Ast.DerefOp -> value_type
-            | Ast.TryOp -> value_type
-            | _ -> todo loc "Infer unary expression type"
           in
           type'
+      | Ast.IfExpr _ -> todo loc "Infer if expression"
+      | Ast.ElseIfExpr _ -> todo loc "Infer else if expression"
+      | Ast.ElseExpr _ -> todo loc "Infer else expression"
+      | Ast.EntityExpr _ -> todo loc "Infer entity expression"
+      | Ast.BlockExpr _ -> todo loc "Infer block expression"
     in
     type'
   (* Infer expression *)
@@ -295,7 +306,7 @@ let infer ast =
               let type' = infer_expr_type env expr in
               let expr = SetAst.Expr.with_type expr type' in
               (type', expr)
-          | Ast.BoolVal o ->
+          | Ast.BoolVal _ ->
               let type' = infer_expr_type env expr in
               let expr = SetAst.Expr.with_type expr type' in
               (type', expr)
@@ -358,14 +369,23 @@ let infer ast =
             let rec aux expr type' =
               match expr with
               | Ast.IfExpr o -> (
-                  verify loc (o.type' = type') "if branch type doesn't match";
+                  assure loc (o.type' = type') (fun _ ->
+                      errormsg filename (GetAst.Expr.xpos expr)
+                        "If branch type doesn't match with expected type.");
                   match o.other with Some x -> aux x type' | None -> unit)
               | Ast.ElseIfExpr o -> (
-                  verify loc (o.type' = type') "else if branch type doesn't match";
+                  assure loc (o.type' = type') (fun _ ->
+                      errormsg filename (GetAst.Expr.xpos expr)
+                        "Else If branch type doesn't match with expected type.");
                   match o.other with Some x -> aux x type' | None -> unit)
               | Ast.ElseExpr o ->
-                  verify loc (o.type' = type') "else branch type doesn't match"
-              | _ -> never loc "Only if/else expressions are allowed."
+                  assure loc (o.type' = type') (fun _ ->
+                      errormsg filename (GetAst.Expr.xpos expr)
+                        "Else branch type doesn't match with expected type.")
+              | _ ->
+                  never loc
+                    (errormsg filename (GetAst.Expr.xpos expr)
+                       "Only if/else expressions are allowed in conditionals.")
             in
             aux expr (GetAst.Expr.type' expr);
             expr
@@ -383,7 +403,9 @@ let infer ast =
               | _ -> never loc "Only if/else expressions are allowed."
             in
             let valid = aux expr in
-            verify loc valid "else branch not found for conditional expression";
+            assure loc valid (fun _ ->
+                errormsg filename (GetAst.Expr.xpos expr)
+                  "Else branch not found for conditional expression");
             expr
           in
           let block = infer_block env o.block in
@@ -393,7 +415,9 @@ let infer ast =
               {
                 cond =
                   (let type', expr = infer_expr env o.cond in
-                   verify loc (type' = Ast.BoolType) "Only bool values can be conditions";
+                   assure loc (type' = Ast.BoolType) (fun _ ->
+                       errormsg filename (GetAst.Expr.xpos o.cond)
+                         "Only bool values can be conditions.");
                    expr);
                 block;
                 other =
@@ -415,7 +439,9 @@ let infer ast =
               {
                 cond =
                   (let type', expr = infer_expr env o.cond in
-                   verify loc (type' = Ast.BoolType) "Only bool values can be conditions";
+                   assure loc (type' = Ast.BoolType) (fun _ ->
+                       errormsg filename (GetAst.Expr.xpos o.cond)
+                         "Only bool values can be conditions.");
                    expr);
                 block;
                 other =
@@ -437,12 +463,13 @@ let infer ast =
           let type' = infer_block_type block in
           let expr = Ast.BlockExpr { block; type'; pos = o.pos } in
           (type', expr)
+      | Ast.EntityExpr _ -> todo loc "Infer entity expression"
     in
     (type', expr)
   (* Infer lvalue expressions *)
-  and infer_lvalue_expr env vars type' =
+  and infer_lvalue_expr _env vars _type' =
     let validate_lvalue_term term = match term with Ast.IdVal _ -> true | _ -> false in
-    let validate_lvalue_unop op = match op with Ast.DerefOp _ -> true | _ -> false in
+    let validate_lvalue_unop op = match op with Ast.DerefOp -> true | _ -> false in
     let validate_lvalue_expr expr =
       let sucess =
         match expr with
@@ -475,8 +502,9 @@ let infer ast =
         (* BUG: Assign statements is incomplete!
            + Prevent assignment to immutable variables
            + Prevent assignment to varibles without dereferencing. *)
-        let type', expr = infer_expr env s.expr in
-        let vars = infer_lvalue_expr env s.vars type' in
+        (* FIX: Figure out how to modify the statement and return it. *)
+        let type', _expr = infer_expr env s.expr in
+        let _vars = infer_lvalue_expr env s.vars type' in
         (env, stmt)
     | Ast.ReturnStmt s ->
         let _, expr = infer_expr env s.expr in
@@ -532,7 +560,11 @@ let infer ast =
             let first = List.nth sets 0 in
             let type' = GetAst.Stmt.type' first in
             type'
-        | _ -> never loc "A block may have only zero or one set statement")
+        | _ ->
+            never loc
+              (errormsg filename
+                 (GetAst.Stmt.xpos (List.nth sets 1))
+                 "A block expression can not have more than one set statement."))
   (* Infer block *)
   and infer_block env block =
     let block =
@@ -550,7 +582,7 @@ let infer ast =
         let block = infer_block env f.block in
         Ast.Function { id = f.id; args = f.args; type' = f.type'; block; pos = f.pos }
     | Ast.Struct _ -> enty
-    | _ -> todo loc "Infer entity." unit
+    | _ -> todo loc (errormsg filename (GetAst.Entity.xpos enty) "Infer entity.")
   in
 
   let infer env =
@@ -567,13 +599,14 @@ let infer ast =
 ;;
 
 (** Emit LLVM IR from compiled AST *)
-let emit cfg = unit
+let emit _cfg = unit
 
 (** Compile a file *)
 let compile_file file =
   let code = File.read_file_content file in
   let ast = parse code file in
   let tst = infer ast in
+  ignore tst;
   true
 ;;
 
@@ -587,9 +620,6 @@ let compile file =
     | exn ->
         write @@ Printexc.to_string exn;
         false
-    | _ ->
-        todo loc "Unknown error raised.";
-        false
   in
   unit
 ;;
@@ -599,14 +629,7 @@ let pass file = compile file
 
 (** Test if file can not be compiled *)
 let fail file =
-  let success =
-    try compile_file file with
-    | Failure _ -> false
-    | exn -> false
-    | _ ->
-        todo loc "Unknown error raised.";
-        false
-  in
+  let success = try compile_file file with Failure _ -> false | _ -> false in
   verify loc (success = false) "Code did not fail?"
 ;;
 

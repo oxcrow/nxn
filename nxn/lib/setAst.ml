@@ -1,3 +1,5 @@
+open Error.Failure
+
 (* Location *)
 external loc : string = "%loc_LOC"
 
@@ -6,9 +8,12 @@ module Stmt = struct
     match x with
     | Ast.LetStmt y -> Ast.LetStmt { vars = y.vars; expr = e; pos = y.pos }
     | Ast.SetStmt y -> Ast.SetStmt { label = y.label; expr = e; pos = y.pos }
+    | Ast.AssignStmt _ -> todo loc "Assign statement"
     | Ast.ReturnStmt y -> Ast.ReturnStmt { expr = e; pos = y.pos }
     | Ast.InvokeStmt y -> Ast.InvokeStmt { expr = e; pos = y.pos }
     | Ast.IfStmt y -> Ast.IfStmt { expr = e; pos = y.pos }
+    | Ast.BlockStmt _ -> todo loc "Block statement"
+    | Ast.NoneStmt -> x
   ;;
 
   let with_vars x v =
@@ -29,6 +34,11 @@ module Expr = struct
           { lvalue = y.lvalue; op = y.op; rvalue = y.rvalue; type' = t; pos = y.pos }
     | Ast.UnOpExpr y ->
         Ast.UnOpExpr { value = y.value; op = y.op; type' = t; pos = y.pos }
+    | Ast.IfExpr _ -> todo loc "If expression"
+    | Ast.ElseIfExpr _ -> todo loc "Else if expression"
+    | Ast.ElseExpr _ -> todo loc "Else expression"
+    | Ast.EntityExpr _ -> todo loc "Entity expression"
+    | Ast.BlockExpr _ -> todo loc "Block expression"
   ;;
 
   let with_args x a =
