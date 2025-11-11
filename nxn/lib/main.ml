@@ -151,7 +151,7 @@ let infer ast =
             let found_shadow = GetEnv.File.shadow id env in
             (found_var, found_shadow)
           in
-          (* Only varibles previously marked with ~ (tilde), can be shadowed. *)
+          (* Only varibles previously marked to be shadowed, can be shadowed. *)
           if found_prev_var = true then
             assure loc (found_prev_shadow = true) (fun _ ->
                 errormsg (GetAst.File.filename ast) (GetAst.Id.xpos v.id)

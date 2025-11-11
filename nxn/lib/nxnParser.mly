@@ -12,6 +12,11 @@
     let pos = Ast.Pos{start=start; end'=end'} in
     pos
   ;;
+
+  let pos (loc: Lexing.position * Lexing.position) =
+    let startpos, endpos = loc in
+    position startpos endpos
+  ;;
 %}
 
 %token <int> INTVAL
@@ -109,144 +114,179 @@
 %%
 
 file:
-  | EOF { Ast.File { entities = []; filename = "_" } }
-  | e = nonempty_list(entities) EOF {Ast.File { entities = e; filename = "_" }}
+    | EOF { Ast.File { entities = []; filename = "_" } }
+    | e = nonempty_list(entities) EOF {Ast.File { entities = e; filename = "_" }}
 
 entities:
-  | FN i=id; LPAREN a=seplist(COMMA,vars); RPAREN t=return_types; b=blocks;
-    { Ast.Function {
-          id=i;
-          args=a;
-          type'=(Ast.FunctionType{
-                     args=(List.map (fun var -> match var with | Ast.Var v -> v.type') a);
-                     type'=t});
-          block=b;
-          pos=(position $startpos $endpos)
-    } }
-  | STRUCT i=id; LBRACE RBRACE { Ast.Struct {id=i; pos=(position $startpos $endpos)} }
+    | FN i=id; LPAREN a=seplist(COMMA,vars); RPAREN t=return_types; b=blocks;
+        { Ast.Function {
+            id=i;
+            args=a;
+            type'=(Ast.FunctionType{
+                args=(List.map (fun var -> match var with | Ast.Var v -> v.type') a);
+                type'=t});
+            block=b;
+            pos=(pos $loc)
+        } }
+     | STRUCT i=id; LBRACE RBRACE { Ast.Struct {id=i; pos=(pos $loc)} }
 
 blocks:
-  | LBRACE s=list(statements); RBRACE { Ast.Block {stmts=s; pos=(position $startpos $endpos)} }
+    | LBRACE s=list(statements); RBRACE { Ast.Block {stmts=s; pos=(pos $loc)} }
 
 statements:
-  | LET v=seplist(COMMA,vars); EQUAL e=expressions; SEMICOLON { Ast.LetStmt {vars=v; expr=e; pos=(position $startpos $endpos)} }
-  | SET x=expressions; SEMICOLON { Ast.SetStmt {label=None; expr=x; pos=(position $startpos $endpos)} }
-  | v=seplist(COMMA,expressions) EQUAL e=expressions; SEMICOLON { Ast.AssignStmt {vars=v; expr=e; pos=(position $startpos $endpos)} }
-  | RETURN x=expressions; SEMICOLON { Ast.ReturnStmt {expr=x; pos=(position $startpos $endpos)} }
-  | x=expressions; SEMICOLON { Ast.InvokeStmt {expr=x; pos=(position $startpos $endpos)} }
-  | x=ifstmts; { x }
-  | x=blocks; { Ast.BlockStmt {block=x; pos=(position $startpos $endpos)} }
+    | LET v=seplist(COMMA,vars); EQUAL e=expressions; SEMICOLON
+        { Ast.LetStmt {vars=v; expr=e; pos=(pos $loc)} }
+    | SET x=expressions; SEMICOLON
+        { Ast.SetStmt {label=None; expr=x; pos=(pos $loc)} }
+    | v=seplist(COMMA,expressions) EQUAL e=expressions; SEMICOLON
+        { Ast.AssignStmt {vars=v; expr=e; pos=(pos $loc)} }
+    | RETURN x=expressions; SEMICOLON
+        { Ast.ReturnStmt {expr=x; pos=(pos $loc)} }
+    | x=expressions; SEMICOLON
+        { Ast.InvokeStmt {expr=x; pos=(pos $loc)} }
+    | x=blocks;
+        { Ast.BlockStmt {block=x; pos=(pos $loc)} }
+    | x=ifstmts; { x }
 
 ifstmts:
-  | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfStmt {expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType; pos=(position $startpos $endpos)}; pos=(position $startpos $endpos)} }
+    | IF c=expressions; b=blocks; o=option(elsebranch);
+        { Ast.IfStmt{expr=Ast.IfExpr{cond=c; block=b; other=o; is_stmt=true; type'=Ast.NoneType; pos=(pos $loc)}; pos=(pos $loc)} }
 
 ifexprs:
-  | IF c=expressions; b=blocks; o=option(elsebranch); { Ast.IfExpr {cond=c; block=b; other=o; is_stmt=false; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+    | IF c=expressions; b=blocks; o=option(elsebranch);
+        { Ast.IfExpr {cond=c; block=b; other=o; is_stmt=false; type'=Ast.NoneType; pos=(pos $loc)} }
 elseifexprs:
-  | ELSE IF c=expressions; b=blocks; o=option(elsebranch); { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+    | ELSE IF c=expressions; b=blocks; o=option(elsebranch);
+        { Ast.ElseIfExpr {cond=c; block=b; other=o; type'=Ast.NoneType; pos=(pos $loc)} }
 elseexprs:
-  | ELSE b=blocks; { Ast.ElseExpr {block=b; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+    | ELSE b=blocks; { Ast.ElseExpr {block=b; type'=Ast.NoneType; pos=(pos $loc)} }
 
 elsebranch:
-  | x=elseifexprs; { x }
-  | x=elseexprs; { x }
+    | x=elseifexprs; { x }
+    | x=elseexprs; { x }
 
 expressions:
-  | LPAREN x=expressions; RPAREN { x }
-  | AT x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=postfix; { x }
-  | x=binops; { x }
-  | x=unops; { x }
+     | LPAREN x=expressions; RPAREN { x }
+     | AT x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(pos $loc)} }
+     | x=postfix; { x }
+     | x=binops; { x }
+     | x=unops; { x }
 
 postfix:
-  | x=exprs; { x }
-  | x=exprs; QUESTION { Ast.UnOpExpr {value=x; op=Ast.TryOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+    | x=exprs; { x }
+    | x=exprs; QUESTION
+        { Ast.UnOpExpr {value=x; op=Ast.TryOp; type'=Ast.NoneType; pos=(pos $loc)} }
 
 binops:
-  | x=expressions; PLUS  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.AddOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=expressions; MINUS y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.SubOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=expressions; STAR  y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.MulOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=expressions; SLASH y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.DivOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=conds; { x }
+    | x=expressions; PLUS  y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.AddOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=expressions; MINUS y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.SubOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=expressions; STAR  y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.MulOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=expressions; SLASH y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.DivOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=conds; { x }
 
 conds:
-  | x=expressions; EQ y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.EqOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=expressions; NE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.NeOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=expressions; LE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LeOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=expressions; GE y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GeOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=expressions; LT y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.LtOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=expressions; GT y=expressions; { Ast.BinOpExpr {lvalue=x; op=Ast.GtOp; rvalue=y; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+    | x=expressions; EQ y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.EqOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=expressions; NE y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.NeOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=expressions; LE y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.LeOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=expressions; GE y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.GeOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=expressions; LT y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.LtOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=expressions; GT y=expressions;
+        { Ast.BinOpExpr {lvalue=x; op=Ast.GtOp; rvalue=y; type'=Ast.NoneType; pos=(pos $loc)} }
 
 unops:
-  | PLUS x=expressions; %prec UPLUS { Ast.UnOpExpr {value=x; op=Ast.PosOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | MINUS x=expressions; %prec UMINUS { Ast.UnOpExpr {value=x; op=Ast.NegOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | EXCLAMATION x=expressions; %prec NOT { Ast.UnOpExpr {value=x; op=Ast.NotOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=refs; { x }
+    | PLUS x=expressions; %prec UPLUS
+        { Ast.UnOpExpr {value=x; op=Ast.PosOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | MINUS x=expressions; %prec UMINUS
+        { Ast.UnOpExpr {value=x; op=Ast.NegOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | EXCLAMATION x=expressions; %prec NOT
+        { Ast.UnOpExpr {value=x; op=Ast.NotOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=refs; { x }
 
 refs:
-  | AMPERSAND x=expressions; %prec UCONREF { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | MUT AMPERSAND x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | STAR x=expressions; %prec UMUTREF { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | CARET x=expressions; %prec UDEREF { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
+    | AMPERSAND x=expressions; %prec UCONREF
+        { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | MUT AMPERSAND x=expressions; %prec UMUTREF
+        { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | STAR x=expressions; %prec UMUTREF
+        { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
+    | CARET x=expressions; %prec UDEREF
+        { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(pos $loc)} }
 
 exprs:
-  | x=entities; { Ast.EntityExpr {value=x; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | x=terminals; { Ast.TerminalExpr {value=x; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN { Ast.InvokeExpr {value=i; args=a; type'=Ast.NoneType; pos=(position $startpos $endpos)} }
-  | AT x=ifexprs; { x }
+    | x=entities;
+        { Ast.EntityExpr {value=x; type'=Ast.NoneType; pos=(pos $loc)} }
+    | x=terminals;
+        { Ast.TerminalExpr {value=x; type'=Ast.NoneType; pos=(pos $loc)} }
+    | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN
+        { Ast.InvokeExpr {value=i; args=a; type'=Ast.NoneType; pos=(pos $loc)} }
+    | AT x=ifexprs; { x }
 
 terminals:
-  | UNDEFINED { Ast.UndefinedVal }
-  | LPAREN RPAREN { Ast.UnitVal }
-  | x=bools;  { Ast.BoolVal {value=x} }
-  | x=INTVAL; { Ast.IntVal {value=x} }
-  | x=FLOATVAL; { Ast.FloatVal {value=x} }
-  | x=id; { Ast.IdVal {value=x} }
-  | DOT LBRACE x=seplist(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
+    | UNDEFINED { Ast.UndefinedVal }
+    | LPAREN RPAREN { Ast.UnitVal }
+    | x=bools;  { Ast.BoolVal {value=x} }
+    | x=INTVAL; { Ast.IntVal {value=x} }
+    | x=FLOATVAL; { Ast.FloatVal {value=x} }
+    | x=id; { Ast.IdVal {value=x} }
+    | DOT LBRACE x=seplist(COMMA,expressions); RBRACE { Ast.StructVal {value=x} }
 
 bools:
-  | TRUE { true }
-  | FALSE { false }
+    | TRUE { true }
+    | FALSE { false }
 
 vars:
-  | s=state; sh=shadow; i=id; t=typedec; { Ast.Var {id=i; state=s; shadow=sh; type'=t;} }
+    | s=state; sh=shadow; i=id; t=typedec; { Ast.Var {id=i; state=s; shadow=sh; type'=t;} }
 
 shadow:
-  |  { false }
-  | PLUS { true }
+    |  { false }
+    | PLUS { true }
 
 state:
-  | { Ast.ConState }
-  | CON { Ast.ConState }
-  | MUT { Ast.MutState }
-  | SET { Ast.SetState }
+    | { Ast.ConState }
+    | CON { Ast.ConState }
+    | MUT { Ast.MutState }
+    | SET { Ast.SetState }
 
 typedec:
-  | { NoneType }
-  | COLON t=types; { t }
+    | { NoneType }
+    | COLON t=types; { t }
 
 return_types:
-  | { Ast.UnitType }
-  | t=types; { t }
+    | { Ast.UnitType }
+    | t=types; { t }
 
 types:
-  | LPAREN RPAREN { Ast.UnitType }
-  | BOOL { Ast.BoolType }
-  | INT { Ast.IntType }
-  | I32 { Ast.IntType }
-  | U32 { Ast.IntType }
-  | FLOAT { Ast.FloatType }
-  | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
-  | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
-  | AMPERSAND l=option(life); t=types; { Ast.ConRefType {life=l; types=t} }
-  | MUT AMPERSAND l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
-  | STAR l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
+    | LPAREN RPAREN { Ast.UnitType }
+    | BOOL { Ast.BoolType }
+    | INT { Ast.IntType }
+    | I32 { Ast.IntType }
+    | U32 { Ast.IntType }
+    | FLOAT { Ast.FloatType }
+    | HASH LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
+    | STRUCT LBRACE t=separated_nonempty_list(COMMA,types); RBRACE { Ast.StructType {types=t} }
+    | AMPERSAND l=option(life); t=types; { Ast.ConRefType {life=l; types=t} }
+    | MUT AMPERSAND l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
+    | STAR l=option(life); t=types; { Ast.MutRefType {life=l; types=t} }
 
 life:
-  | l=id; BAR { l }
+    | l=id; BAR { l }
 
 id:
-  | i=IDVAL; { Ast.Id {value=i; pos=(position $startpos $endpos)} }
+    | i=IDVAL; { Ast.Id {value=i; pos=(pos $loc)} }
+
+seplist(SEP, NODE):
+    | { [] }
+    | x=NODE; { [x] }
+    | x=NODE; SEP y=seplist(SEP,NODE); { x::y }
 
 let locate == {
   let startpos: Lexing.position = $startpos in
@@ -263,8 +303,3 @@ let locate_node(node) == data=node; {
   let loc = Ast.Loc{lnum=lnum; cnum=cnum} in
   (data, loc)
 }
-
-seplist(SEP, NODE):
-  | { [] }
-  | x=NODE; { [x] }
-  | x=NODE; SEP y=seplist(SEP,NODE); { x::y }
