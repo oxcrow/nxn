@@ -213,7 +213,7 @@ vars:
 
 shadow:
   |  { false }
-  | TILDE { true }
+  | PLUS { true }
 
 state:
   | { Ast.ConState }
