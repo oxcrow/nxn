@@ -635,23 +635,33 @@ let fail file =
 
 (** Run integration tests *)
 let validate () =
-  fail "test/fail/001-01.nxn";
-  fail "test/fail/001-02.nxn";
-  fail "test/fail/001-03.nxn";
-  fail "test/fail/001-04.nxn";
-  fail "test/fail/001-05.nxn";
-  pass "test/fail/002-01.nxn";
+  let fail = fail in
 
-  pass "test/pass/001-01.nxn";
-  pass "test/pass/001-01-02.nxn";
-  pass "test/pass/001-02.nxn";
-  pass "test/pass/001-03.nxn";
-  pass "test/pass/001-04.nxn";
-  pass "test/pass/001-05.nxn";
-  pass "test/pass/002-01.nxn";
-  pass "test/pass/002-02.nxn";
-  pass "test/pass/002-03.nxn";
-  pass "test/pass/002-04.nxn";
+  (* Test basics *)
+  fail "test/fail/001-001-001.nxn";
+  fail "test/fail/001-001-002.nxn";
+  fail "test/fail/001-001-003.nxn";
+  fail "test/fail/001-001-004.nxn";
+  fail "test/fail/001-001-101.nxn";
+  (* Test borrow checker with non-lexical lifetimes *)
+  pass "test/fail/001-002-001.nxn";
+
+  (* Test basics *)
+  pass "test/pass/001-001-001.nxn";
+  pass "test/pass/001-001-002.nxn";
+  pass "test/pass/001-001-003.nxn";
+  pass "test/pass/001-001-004.nxn";
+  (* Test scopes with blocks *)
+  pass "test/pass/001-001-101.nxn";
+  (* Test functions with values *)
+  pass "test/pass/001-001-201.nxn";
+  (* Test functions with references *)
+  pass "test/pass/001-001-301.nxn";
+  pass "test/pass/001-001-302.nxn";
+  pass "test/pass/001-001-303.nxn";
+  pass "test/pass/001-001-304.nxn";
+  (* Test borrow checker with non-lexical lifetimes *)
+  pass "test/pass/001-002-001.nxn";
   unit
 ;;
 

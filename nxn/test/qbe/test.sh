@@ -1,5 +1,5 @@
-./001-01.out
-echo $?
-
-./001-02.out
-echo $?
+for file in $(ls -1 *.out); do
+    ./$file
+    return_code=$?
+    echo "Running executable:" $file "has returned code: " $return_code
+done

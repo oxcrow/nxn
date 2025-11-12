@@ -1,0 +1,6 @@
+// Return a variable
+
+fn main() i32 {
+    let x = 0;
+    return x;
+}
