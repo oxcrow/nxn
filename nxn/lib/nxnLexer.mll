@@ -25,6 +25,7 @@ rule token = parse
   | "implement" { NxnParser.IMPLEMENT }
 
   | "let" { NxnParser.LET }
+  | "new" { NxnParser.NEW }
   | "con" { NxnParser.CON }
   | "mut" { NxnParser.MUT }
   | "set" { NxnParser.SET }

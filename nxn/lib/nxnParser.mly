@@ -30,6 +30,7 @@
 %token IMPLEMENT
 
 %token LET
+%token NEW
 %token CON
 %token MUT
 %token SET
@@ -231,6 +232,7 @@ vars:
 
 shadow:
     |  { false }
+    | NEW { true }
     | PLUS { true }
 
 state:
