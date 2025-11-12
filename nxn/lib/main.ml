@@ -643,6 +643,7 @@ let validate () =
   pass "test/fail/002-01.nxn";
 
   pass "test/pass/001-01.nxn";
+  pass "test/pass/001-01-02.nxn";
   pass "test/pass/001-02.nxn";
   pass "test/pass/001-03.nxn";
   pass "test/pass/001-04.nxn";

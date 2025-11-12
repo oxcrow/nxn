@@ -1,7 +1,7 @@
 let whitespace = [' ''\t']
 let newline = ['\n']
 let digit = ['0'-'9']
-let integer = digit+
+let integer = digit['0'-'9''_']*
 let float = digit+(['.']digit+)?
 let id = ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_']*
 let document = "///"[^'\n']*newline
