@@ -152,7 +152,7 @@ statements:
 
 expressions:
      | LPAREN x=expressions; RPAREN { x }
-     | DOLLAR x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(pos $loc)} }
+     | AT x=blocks; { Ast.BlockExpr {block=x; type'=Ast.NoneType; pos=(pos $loc)} }
      | x=postfix; { x }
      | x=binops; { x }
      | x=unops; { x }
@@ -161,15 +161,11 @@ postfix:
     | x=exprs; { x }
     | x=postfix; QUESTION %prec UTRY
         { Ast.UnOpExpr {value=x; op=Ast.TryOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=postfix; EXCLAMATION %prec UMOVE
-        { Ast.UnOpExpr {value=x; op=Ast.MoveOp; type'=Ast.NoneType; pos=(pos $loc)} }
     | x=postfix; AMPERSAND %prec UCONREF
         { Ast.UnOpExpr {value=x; op=Ast.ConRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
     | x=postfix; AMPERSAND MUT %prec UMUTREF
         { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=postfix; AT %prec UMUTREF
-        { Ast.UnOpExpr {value=x; op=Ast.MutRefOp; type'=Ast.NoneType; pos=(pos $loc)} }
-    | x=postfix; HASH %prec UDEREF
+    | x=postfix; EXCLAMATION %prec UDEREF
         { Ast.UnOpExpr {value=x; op=Ast.DerefOp; type'=Ast.NoneType; pos=(pos $loc)} }
 
 binops:
@@ -212,7 +208,7 @@ exprs:
         { Ast.TerminalExpr {value=x; type'=Ast.NoneType; pos=(pos $loc)} }
     | i=id; LPAREN a=seplist(COMMA,expressions); RPAREN
         { Ast.InvokeExpr {value=i; args=a; type'=Ast.NoneType; pos=(pos $loc)} }
-    | DOLLAR x=ifexprs; { x }
+    | AT x=ifexprs; { x }
 
 terminals:
     | UNDEFINED { Ast.UndefinedVal }

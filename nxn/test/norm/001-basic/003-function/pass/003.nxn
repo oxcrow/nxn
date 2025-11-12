@@ -1,0 +1,12 @@
+fn main() i32 {
+	let mut x, mut y = .{1, 0};
+	swap(x&mut, y&mut);
+	return x;
+}
+
+fn swap(x: mut&i32, y: mut&i32) {
+	let xval = x!;
+	let yval = y!;
+	x! = yval;
+	y! = xval;
+}

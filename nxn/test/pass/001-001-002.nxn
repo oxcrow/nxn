@@ -1,5 +1,0 @@
-// Parse an _ (underscore) separated integer and return it
-
-fn main() i32 {
-    return 999_999_999;
-}

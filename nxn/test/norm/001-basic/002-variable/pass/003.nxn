@@ -1,0 +1,4 @@
+fn main() i32 {
+	let x, y = .{0, 1};
+	return x;
+}

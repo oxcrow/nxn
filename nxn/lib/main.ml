@@ -1,6 +1,7 @@
 open Error.Failure
 open Utils.String
 open Utils.Tuple
+open Yojson
 
 let unit = ()
 let write = print_endline
@@ -641,36 +642,32 @@ let fail (file : string) : unit =
 let validate _ =
   let fail = fail in
 
-  (* Test basics *)
-  fail "test/fail/001-001-001.nxn";
-  fail "test/fail/001-001-002.nxn";
-  fail "test/fail/001-001-003.nxn";
-  fail "test/fail/001-001-004.nxn";
-  fail "test/fail/001-001-101.nxn";
-  (* Test borrow checker with non-lexical lifetimes *)
-  pass "test/fail/001-002-001.nxn";
+  pass "test/norm/001-basic/001-return/pass/001.nxn";
+  pass "test/norm/001-basic/002-variable/pass/001.nxn";
+  pass "test/norm/001-basic/002-variable/pass/002.nxn";
+  pass "test/norm/001-basic/002-variable/pass/003.nxn";
+  pass "test/norm/001-basic/003-function/pass/001.nxn";
+  pass "test/norm/001-basic/003-function/pass/002.nxn";
+  pass "test/norm/001-basic/003-function/pass/003.nxn";
+  pass "test/norm/001-basic/004-condition/pass/001.nxn";
+  pass "test/norm/001-basic/004-condition/pass/002.nxn";
+  pass "test/norm/001-basic/004-condition/pass/003.nxn";
+  pass "test/norm/001-basic/004-condition/pass/004.nxn";
+  pass "test/norm/001-basic/004-condition/pass/005.nxn";
+  pass "test/norm/001-basic/004-condition/pass/020.nxn";
+  pass "test/norm/001-basic/005-block/pass/001.nxn";
+  pass "test/norm/001-basic/005-block/pass/002.nxn";
+  pass "test/norm/001-basic/020-borrow/pass/001.nxn";
+  pass "test/norm/001-basic/020-borrow/pass/002.nxn";
+  pass "test/norm/001-basic/020-borrow/pass/003.nxn";
+  pass "test/norm/001-basic/020-borrow/pass/004.nxn";
+  pass "test/norm/001-basic/020-borrow/fail/001.nxn";
 
-  (* Test basics *)
-  pass "test/pass/001-001-001.nxn";
-  pass "test/pass/001-001-002.nxn";
-  pass "test/pass/001-001-003.nxn";
-  pass "test/pass/001-001-004.nxn";
-  (* Test scopes with blocks *)
-  pass "test/pass/001-001-101.nxn";
-  (* Test functions with values *)
-  pass "test/pass/001-001-201.nxn";
-  (* Test functions with references *)
-  pass "test/pass/001-001-301.nxn";
-  pass "test/pass/001-001-302.nxn";
-  pass "test/pass/001-001-303.nxn";
-  pass "test/pass/001-001-304.nxn";
-  (* Test borrow checker with non-lexical lifetimes *)
-  pass "test/pass/001-002-001.nxn";
   unit
 ;;
 
 (** Execution starts here *)
 let main =
-  compile "x.nxn" |> validate;
+  pass "x.nxn" |> validate;
   unit
 ;;

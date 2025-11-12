@@ -1,0 +1,8 @@
+fn main() i32 {
+	let x = @if true {
+		set 0;
+	} else {
+		set 1;
+	};
+	return x;
+}

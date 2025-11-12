@@ -1,0 +1,7 @@
+fn main() i32 {
+	let x = @{
+		let x = 0;
+		set x;
+	};
+	return x;
+}

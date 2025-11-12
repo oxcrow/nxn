@@ -15,7 +15,7 @@
  (name nxn)
  (synopsis "nxn compiler.")
  (description "A compiler for the nxn programming language.")
- (depends ocaml)
+ (depends ocaml yojson)
  (tags ("compiler")))
 
 ; dune: https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

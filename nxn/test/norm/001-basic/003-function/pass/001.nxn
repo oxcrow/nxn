@@ -1,0 +1,8 @@
+fn main() i32 {
+	let x = zero();
+	return x;
+}
+
+fn zero() i32 {
+	return 0;
+}

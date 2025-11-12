@@ -1,0 +1,6 @@
+fn main() i32 {
+	if not false {
+		return 0;
+	}
+	return 1;
+}

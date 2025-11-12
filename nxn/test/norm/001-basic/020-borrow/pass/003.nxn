@@ -1,0 +1,9 @@
+fn main() i32 {
+	let mut x: &i32 = undefined;
+	let y, z = .{0, 1};
+	{
+		x = z&;
+		x = y&;
+	}
+	return x!;
+}

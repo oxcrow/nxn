@@ -1,0 +1,6 @@
+fn main() i32 {
+	let x: &i32 = undefined;
+	let y = 0;
+	x = y&;
+	return x!;
+}

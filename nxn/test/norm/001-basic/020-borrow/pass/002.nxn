@@ -1,0 +1,10 @@
+fn main() i32 {
+	let x: &i32 = undefined;
+	let y, z = .{0, 1};
+	if y == 0 {
+		x = y&;
+	} else {
+		x = z&;
+	}
+	return x!;
+}
