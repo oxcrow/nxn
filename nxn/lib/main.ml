@@ -12,7 +12,7 @@ external loc : string = "%loc_LOC"
 let printast ast = write ("+ " ^ Ast.show_file ast ^ "\n")
 
 (** Evalulate error message *)
-let errormsg filename pos msg =
+let errormsg (filename : string) (pos : int * int) (msg : string) : string =
   let lnum, cnum = pos in
 
   (* To help debug cases where we evaluate the error message multiple times.
@@ -44,13 +44,12 @@ let errormsg filename pos msg =
   let line4 = line (lnum + 1) ^ "\n" in
   let line5 = line (lnum + 2) ^ "\n" in
 
-  let text = line1 ^ line2 ^ line3 ^ line4 ^ line5 in
-  let msg = line0 ^ text in
+  let msg = line0 ^ line1 ^ line2 ^ line3 ^ line4 ^ line5 in
   msg
 ;;
 
 (** Parse nxn code and create AST *)
-let parse code filename =
+let parse (code : string) (filename : string) : Ast.file =
   let buf = Lexing.from_string code in
 
   let errorpos (buf : Lexing.lexbuf) =
@@ -82,7 +81,7 @@ let parse code filename =
 ;;
 
 (** Type infer AST nodes *)
-let infer ast =
+let infer (ast : Ast.file) : Ast.file =
   let filename = GetAst.File.filename ast in
   (* Create environment *)
   let envir ast =
@@ -598,22 +597,30 @@ let infer ast =
   tst
 ;;
 
+(** Lower AST to MIR form *)
+let lower ast =
+  let filename = GetAst.File.filename ast in
+  unit;
+  unit
+;;
+
 (** Emit LLVM IR from compiled AST *)
 let emit _cfg = unit
 
-(** Compile a file *)
-let compile_file file =
+(** Compile code and report error *)
+let compile (file : string) : bool =
   let code = File.read_file_content file in
   let ast = parse code file in
   let tst = infer ast in
-  ignore tst;
+  let mir = lower tst in
+  ignore mir;
   true
 ;;
 
-(** Compile code and report error *)
-let compile file =
+(** Test if file can be compiled *)
+let pass (file : string) : unit =
   let _success =
-    try compile_file file with
+    try compile file with
     | Failure msg ->
         write msg;
         false
@@ -624,17 +631,14 @@ let compile file =
   unit
 ;;
 
-(** Test if file can be compiled *)
-let pass file = compile file
-
 (** Test if file can not be compiled *)
-let fail file =
-  let success = try compile_file file with Failure _ -> false | _ -> false in
+let fail (file : string) : unit =
+  let success = try compile file with Failure _ -> false | _ -> false in
   verify loc (success = false) "Code did not fail?"
 ;;
 
 (** Run integration tests *)
-let validate () =
+let validate _ =
   let fail = fail in
 
   (* Test basics *)
@@ -668,6 +672,5 @@ let validate () =
 (** Execution starts here *)
 let main =
   compile "x.nxn" |> validate;
-  write "+";
   unit
 ;;
