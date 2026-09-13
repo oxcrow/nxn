@@ -53,7 +53,7 @@ and inferVars env file expr vars =
     match (exprs, vars) with
     | [], [] -> acc
     | headExpr :: tailExpr, headVar :: tailVar ->
-        (* let expectedType = Ast.getTypeOfVar headVar in *)
+        let expectedType = Ast.getTypeOfVar headVar in
         destruct tailExpr tailVar acc
     | _ -> never source "infer-vars"
   in
@@ -79,7 +79,8 @@ and inferVars env file expr vars =
       | Ast.TupleExpr o -> o.exprs
       | Ast.ArrayExpr o -> o.exprs
       | _ -> [ expr ])
-      (List.map simplifyPattern vars) []
+      (List.map simplifyPattern vars |> List.flatten)
+      []
   in
   (env, lowVars)
 
