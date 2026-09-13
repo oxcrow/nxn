@@ -102,7 +102,7 @@ and pats =
   | LonePattern of { var : vars }
 
 (* Variables *)
-and vars = Var of { state : states; name : names; type' : types; uuid : uuids }
+and vars = Var of { state : states; name : names; type' : types; uuid : uuids; loc : loc }
 
 (* Types of nodes *)
 and types =
@@ -137,11 +137,17 @@ and lox = Location of { lineIndex : int; colIndex : int } | Nowhere
 
 let getStringOfName n = match n with Name n -> n.name
 let getIdOfName n = match n with Name n -> n.nameId
+
+(* *)
 let getEntitiesOfFile f = match f with File f -> f.entities
 let getStringNameOfFile f = match f with File f -> f.file
 let getStringOfModule m = match m with Mod m -> getStringOfName m.name
 let getModulesOfFile f = match f with File f -> f.modules
+
+(* *)
+let getNameOfVar v = match v with Var v -> v.name
 let getTypeOfVar v = match v with Var v -> v.type'
+let getLocOfVar v = match v with Var v -> v.loc
 
 let getTypeOfExpr e =
   match e with

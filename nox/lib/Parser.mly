@@ -303,12 +303,12 @@ pats:
 
 vars:
     | s=states; n=names; t=option(types); {
-        Ast.Var {state=s; name=n; type'=(match t with Some t -> t | None -> Ast.NoneType); uuid=(uuid ())}
+        Ast.Var {state=s; name=n; type'=(match t with Some t -> t | None -> Ast.NoneType); uuid=(uuid ()); loc=(loc $loc)}
     }
 
 args:
     | n=names; t=types; {
-        Ast.Var {state=Ast.ConState; name=n; type'=t; uuid=(uuid ())}
+        Ast.Var {state=Ast.ConState; name=n; type'=t; uuid=(uuid ()); loc=(loc $loc)}
     }
 
 returnTypes:

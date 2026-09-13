@@ -59,6 +59,8 @@ and inferVars env file expr vars =
           | Ast.TupleType t -> List.nth_opt t.types varIndex |> some source
           | _ -> Ast.getTypeOfExpr headExpr
         in
+
+        (* Ensure that the expected type of variable (if present), is respected *)
         assure source
           (match expectedType with Ast.NoneType -> true | _ -> expectedType = exprType)
           (fun _ ->
@@ -69,6 +71,11 @@ and inferVars env file expr vars =
                    source = xSOURCE source;
                    error = None;
                  }));
+
+        let name = Ast.getStringOfName (Ast.getNameOfVar headVar) in
+        let nameId = Ast.getIdOfName (Ast.getNameOfVar headVar) in
+        let loc = Ast.getLocOfVar headVar in
+
         destruct tailExpr tailVar (varIndex + 1) acc
     | _ -> never source "infer-vars"
   in
