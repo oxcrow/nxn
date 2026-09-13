@@ -141,3 +141,4 @@ let getEntitiesOfFile f = match f with File f -> f.entities
 let getStringNameOfFile f = match f with File f -> f.file
 let getStringOfModule m = match m with Mod m -> getStringOfName m.name
 let getModulesOfFile f = match f with File f -> f.modules
+let getTypeOfVar v = match v with Var v -> v.type'

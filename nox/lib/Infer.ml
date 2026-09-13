@@ -34,7 +34,7 @@ and inferStmt env file stmt =
         (* Insert the variables in environment *)
         let env, lowExpr = inferExpr env file o.expr in
         let env, lowVars = inferVars env file lowExpr o.vars in
-        let lowStmt = Ast.LetStmt { o with expr = lowExpr } in
+        let lowStmt = Ast.LetStmt { o with expr = lowExpr; vars = lowVars } in
         (env, lowStmt)
     | Ast.ReturnStmt o ->
         let env, lowExpr = inferExpr env file o.expr in
@@ -52,7 +52,9 @@ and inferVars env file expr vars =
   let rec destruct exprs vars acc =
     match (exprs, vars) with
     | [], [] -> acc
-    | headExpr :: tailExpr, headVar :: tailVar -> destruct tailExpr tailVar acc
+    | headExpr :: tailExpr, headVar :: tailVar ->
+        (* let expectedType = Ast.getTypeOfVar headVar in *)
+        destruct tailExpr tailVar acc
     | _ -> never source "infer-vars"
   in
 
@@ -63,6 +65,13 @@ and inferVars env file expr vars =
   | _, Ast.LonePattern _ -> ()
   | _ -> never source "Unable to match pattern.");
 
+  let rec simplifyPattern pat =
+    match pat with
+    | Ast.TuplePattern p -> List.map simplifyPattern p.pats |> List.flatten
+    | Ast.ArrayPattern p -> List.map simplifyPattern p.pats |> List.flatten
+    | Ast.LonePattern p -> [ p.var ]
+  in
+
   let lowVars =
     destruct
       (match expr with
@@ -70,13 +79,23 @@ and inferVars env file expr vars =
       | Ast.TupleExpr o -> o.exprs
       | Ast.ArrayExpr o -> o.exprs
       | _ -> [ expr ])
-      vars []
+      (List.map simplifyPattern vars) []
   in
   (env, lowVars)
+
+and inferExprs env file exprs acc =
+  match exprs with
+  | [] -> (env, List.rev acc)
+  | headExpr :: tailExpr ->
+      let env, lowExpr = inferExpr env file headExpr in
+      inferExprs env file tailExpr (lowExpr :: acc)
 
 and inferExpr env file expr =
   let env, lowExpr =
     match expr with
+    | Ast.TupleExpr o ->
+        let env, lowExpr = inferExprs env file o.exprs [] in
+        (env, Ast.TupleExpr { o with exprs = lowExpr })
     | Ast.NameExpr o ->
         let nameId = Ast.getIdOfName o.value in
         let name = Ast.getStringOfName o.value in
