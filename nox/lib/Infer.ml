@@ -49,12 +49,27 @@ and inferStmt env file stmt =
   (env, lowStmt)
 
 and inferVars env file expr vars =
-  let rec destruct exprs vars acc =
+  let rec destruct exprs vars varIndex acc =
     match (exprs, vars) with
     | [], [] -> acc
     | headExpr :: tailExpr, headVar :: tailVar ->
         let expectedType = Ast.getTypeOfVar headVar in
-        destruct tailExpr tailVar acc
+        let exprType =
+          match Ast.getTypeOfExpr headExpr with
+          | Ast.TupleType t -> List.nth_opt t.types varIndex |> some source
+          | _ -> Ast.getTypeOfExpr headExpr
+        in
+        assure source
+          (match expectedType with Ast.NoneType -> true | _ -> expectedType = exprType)
+          (fun _ ->
+            raise
+              (Report
+                 {
+                   message = "Unable to match expected type in pattern.";
+                   source = xSOURCE source;
+                   error = None;
+                 }));
+        destruct tailExpr tailVar (varIndex + 1) acc
     | _ -> never source "infer-vars"
   in
 
@@ -80,7 +95,7 @@ and inferVars env file expr vars =
       | Ast.ArrayExpr o -> o.exprs
       | _ -> [ expr ])
       (List.map simplifyPattern vars |> List.flatten)
-      []
+      0 []
   in
   (env, lowVars)
 

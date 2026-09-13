@@ -142,3 +142,12 @@ let getStringNameOfFile f = match f with File f -> f.file
 let getStringOfModule m = match m with Mod m -> getStringOfName m.name
 let getModulesOfFile f = match f with File f -> f.modules
 let getTypeOfVar v = match v with Var v -> v.type'
+
+let getTypeOfExpr e =
+  match e with
+  | TupleExpr e -> e.types
+  | NameExpr e -> e.types
+  | IntExpr _ -> IntType
+  | UnitExpr _ -> UnitType
+  | _ -> todo source "get-type-of-expr"
+;;
