@@ -114,7 +114,7 @@ and inferVars env file expr vars =
       (List.map simplifyPattern vars |> List.flatten)
       0 []
   in
-  (env, lowVars)
+  (env, List.map (fun v -> Ast.LonePattern { var = v }) lowVars)
 
 and inferExprs env file exprs acc =
   match exprs with
