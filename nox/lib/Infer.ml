@@ -49,9 +49,9 @@ and inferStmt env file stmt =
   (env, lowStmt)
 
 and inferVars env file expr vars =
-  let rec destruct exprs vars varIndex acc =
+  let rec destruct env exprs vars varIndex varAcc =
     match (exprs, vars) with
-    | [], [] -> acc
+    | [], [] -> (env, List.rev varAcc)
     | headExpr :: tailExpr, headVar :: tailVar ->
         let expectedType = Ast.getTypeOfVar headVar in
         let exprType =
@@ -74,9 +74,19 @@ and inferVars env file expr vars =
 
         let name = Ast.getStringOfName (Ast.getNameOfVar headVar) in
         let nameId = Ast.getIdOfName (Ast.getNameOfVar headVar) in
+        let uuid : Ast.uuids = Ast.getUuidOfVar headVar in
         let loc = Ast.getLocOfVar headVar in
 
-        destruct tailExpr tailVar (varIndex + 1) acc
+        let record =
+          Store.Module.VarRecord
+            { name; nameId; types = exprType; varId = uuid.varId; entyId = uuid.entyId; loc }
+        in
+
+        let var = match headVar with Ast.Var v -> Ast.Var { v with type' = exprType } in
+
+        let env = Store.Module.SymbolMap.add nameId record env in
+
+        destruct env tailExpr tailVar (varIndex + 1) (var :: varAcc)
     | _ -> never source "infer-vars"
   in
 
@@ -94,8 +104,8 @@ and inferVars env file expr vars =
     | Ast.LonePattern p -> [ p.var ]
   in
 
-  let lowVars =
-    destruct
+  let env, lowVars =
+    destruct env
       (match expr with
       (* If variable can be destructured, extract their expression list *)
       | Ast.TupleExpr o -> o.exprs

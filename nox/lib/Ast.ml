@@ -147,6 +147,7 @@ let getModulesOfFile f = match f with File f -> f.modules
 (* *)
 let getNameOfVar v = match v with Var v -> v.name
 let getTypeOfVar v = match v with Var v -> v.type'
+let getUuidOfVar v = match v with Var v -> v.uuid
 let getLocOfVar v = match v with Var v -> v.loc
 
 let getTypeOfExpr e =
